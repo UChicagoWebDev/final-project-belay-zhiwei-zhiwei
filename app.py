@@ -218,3 +218,56 @@ def post_message(channel_id):
     body = request.json.get('body')
     query_db('insert into messages (user_id, channels_id, body) values (?, ?, ?)', [user_id, channel_id, body], one=True)
     return {}, 200
+
+@app.route('/api/channel/<int:channel_id>/view', methods=['POST'])
+def update_last_message_viewed(channel_id):
+    api_key = request.headers.get('Authorization')
+    user = query_db('select * from users where api_key = ?', [api_key], one=True)
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    # Get the ID of the last message the user has seen in this channel
+    last_message_id = request.json.get('last_message_id_seen')
+
+    # Check if there's an existing view entry for this user and channel
+    existing_view = query_db('select * from user_message_views where user_id = ? and channel_id = ?',
+                             [user['id'], channel_id], one=True)
+
+    if existing_view:
+        # Update the existing record with the new last_message_id_seen
+        query_db('update user_message_views set last_message_id_seen = ? where user_id = ? and channel_id = ?',
+                 [last_message_id, user['id'], channel_id])
+    else:
+        # Create a new record in user_message_views
+        query_db('insert into user_message_views (user_id, channel_id, last_message_id_seen) values (?, ?, ?)',
+                 [user['id'], channel_id, last_message_id])
+
+    return jsonify({'message': 'User message view updated successfully'}), 200
+
+
+@app.route('/api/user/unread-messages', methods=['GET'])
+def get_unread_messages_count():
+    api_key = request.headers.get('Authorization')
+    user = query_db('select * from users where api_key = ?', [api_key], one=True)
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    channels = query_db('select * from channels')
+    unread_messages_counts = []
+
+    for channel in channels:
+        last_viewed_message_id = query_db(
+            'select last_message_id_seen from user_message_views where user_id = ? and channel_id = ?',
+            [user['id'], channel['id']], one=True)
+
+        if last_viewed_message_id:
+            unread_count = query_db('select count(*) as unread_count from messages where channels_id = ? and id > ?',
+                                    [channel['id'], last_viewed_message_id['last_message_id_seen']], one=True)
+        else:
+            # If the user hasn't viewed any messages in the channel, count all messages as unread
+            unread_count = query_db('select count(*) as unread_count from messages where channels_id = ?',
+                                    [channel['id']], one=True)
+
+        unread_messages_counts.append({'channel_id': channel['id'], 'unread_count': unread_count['unread_count']})
+
+    return jsonify(unread_messages_counts), 200
