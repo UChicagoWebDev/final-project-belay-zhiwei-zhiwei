@@ -198,8 +198,9 @@ def get_messages(channel_id):
     user = query_db('select id from users where api_key = ?', [api_key], one=True)
     if not user:
         return {}, 403
-    message = query_db('select * from messages left join users on messages.user_id = users.id where channels_id = ?',
-                       [channel_id])
+    message = query_db(
+        'select * from messages left join users on messages.user_id = users.id where channels_id = ? and replies_to IS NULL',
+        [channel_id])
     if message:
         print("GET MESSAGE SUCCESSFULLY!!!")
         return jsonify([dict(message) for message in message]), 200
@@ -261,13 +262,80 @@ def get_unread_messages_count():
             [user['id'], channel['id']], one=True)
 
         if last_viewed_message_id:
-            unread_count = query_db('select count(*) as unread_count from messages where channels_id = ? and id > ?',
+            # Modified query to include "and replies_to IS NULL"
+            unread_count = query_db('select count(*) as unread_count from messages where channels_id = ? and id > ? and replies_to IS NULL',
                                     [channel['id'], last_viewed_message_id['last_message_id_seen']], one=True)
         else:
-            # If the user hasn't viewed any messages in the channel, count all messages as unread
-            unread_count = query_db('select count(*) as unread_count from messages where channels_id = ?',
+            # Modified query to include "and replies_to IS NULL"
+            unread_count = query_db('select count(*) as unread_count from messages where channels_id = ? and replies_to IS NULL',
                                     [channel['id']], one=True)
 
         unread_messages_counts.append({'channel_id': channel['id'], 'unread_count': unread_count['unread_count']})
 
     return jsonify(unread_messages_counts), 200
+
+
+@app.route('/api/channel/<int:channel_id>/message-replies', methods=['GET'])
+def get_message_replies_count(channel_id):
+    api_key = request.headers.get('Authorization')
+    user = query_db('select * from users where api_key = ?', [api_key], one=True)
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    # Retrieve all parent messages in the specified channel
+    parent_messages = query_db(
+        'select * from messages where channels_id = ? and replies_to IS NULL', [channel_id])
+
+    replies_counts = []
+    for message in parent_messages:
+        # Count replies for each parent message
+        replies_count = query_db(
+            'select count(*) as reply_count from messages where replies_to = ?', [message['id']], one=True)
+
+        replies_counts.append({
+            'message_id': message['id'],
+            'reply_count': replies_count['reply_count']
+        })
+
+    return jsonify(replies_counts), 200
+
+
+@app.route('/api/messages/<int:message_id>/replies', methods=['GET'])
+def get_message_replies(message_id):
+    api_key = request.headers.get('Authorization')
+    user = query_db('select id from users where api_key = ?', [api_key], one=True)
+
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    # SQL query to select all replies to the specific message
+    replies = query_db('SELECT * FROM messages left join users on messages.user_id = users.id WHERE replies_to = ?', [message_id])
+
+    if replies:
+        return jsonify([dict(reply) for reply in replies]), 200
+    else:
+        return jsonify([]), 200
+
+@app.route('/api/messages/<int:message_id>/replies', methods=['POST'])
+def post_reply(message_id):
+    api_key = request.headers.get('Authorization')
+    user = query_db('select id from users where api_key = ?', [api_key], one=True)
+
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    # Extract the reply body from the request
+    data = request.json
+    reply_body = data.get('body')
+
+    if not reply_body:
+        return jsonify({'error': 'Missing reply body'}), 400
+
+    # Insert the new reply into the database
+    try:
+        query_db('INSERT INTO messages (user_id, channels_id, replies_to, body) VALUES (?, ?, ?, ?)',
+                 [user['id'], data.get('channel_id'), message_id, reply_body])
+        return jsonify({'message': 'Reply posted successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': 'Failed to post reply', 'details': str(e)}), 500
+

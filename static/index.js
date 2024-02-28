@@ -231,11 +231,19 @@ function SplashScreen(props, setUser) {
             });
     };
 
-    React.useEffect(() => {
+    // React.useEffect(() => {
+    //
+    //     fetchRooms();
+    //     fetchUserInfo();
+    //     fetchUnreadMessageCounts();
+    // }, []); // The empty array ensures this effect runs only once after the initial render
 
+    React.useEffect(() => {
         fetchRooms();
         fetchUserInfo();
         fetchUnreadMessageCounts();
+        const counts_interval = setInterval(fetchUnreadMessageCounts, 1000);
+        return () => clearInterval(counts_interval);
     }, []); // The empty array ensures this effect runs only once after the initial render
 
     const navigateToChannel = (channelId) => {
@@ -276,7 +284,8 @@ function SplashScreen(props, setUser) {
                     <div className="roomList">
                         {rooms.map((room) => (
                             <button key={room.id} onClick={() => navigateToChannel(room.id)}>
-                                {room.name} ({unreadCounts[room.id] || 0} unread messages)
+                                {room.name} {unreadCounts[room.id] !== 0 &&
+                                <strong>({unreadCounts[room.id]} unread messages)</strong>}
                             </button>
                         ))}
                     </div>
@@ -521,24 +530,48 @@ function ChatChannel() {
     const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
     const [messages, setMessages] = React.useState([]); // State to hold messages
     const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
+    const [repliesCount, setRepliesCount] = React.useState({});
+    const [selectedMessageId, setSelectedMessageId] = React.useState(null);
+    const [replies, setReplies] = React.useState([]);
 
-
-    const fetchRoomDetailsAndUpdateLastViewed = () => {
+    const fetchRepliesForMessage = (messageId) => {
         const apiKey = localStorage.getItem('api_key');
-
-        // Fetch room details
-        fetch(`/api/channel/${id}`, {
+        fetch(`/api/messages/${messageId}/replies`, {
             method: 'GET',
             headers: {
                 'Authorization': apiKey,
                 'Content-Type': 'application/json',
             },
         })
-        .then(response => response.json())
-        .then(data => {
-            setRoom({ name: data.name });
-        })
-        .catch(error => console.error("Failed to fetch room details:", error));
+            .then(response => response.json())
+            .then(data => {
+                console.log("-----------========_______",data);
+                setReplies(data);
+            })
+            .catch(error => console.error("Failed to fetch replies:", error));
+    };
+
+    const handleShowReplies = (messageId) => {
+        setSelectedMessageId(messageId);
+        fetchRepliesForMessage(messageId);
+    };
+
+    const updateLastViewed = () => {
+        const apiKey = localStorage.getItem('api_key');
+
+        // Fetch room details
+        // fetch(`/api/channel/${id}`, {
+        //     method: 'GET',
+        //     headers: {
+        //         'Authorization': apiKey,
+        //         'Content-Type': 'application/json',
+        //     },
+        // })
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         setRoom({name: data.name});
+        //     })
+        //     .catch(error => console.error("Failed to fetch room details:", error));
 
         // Fetch messages for the room and update last viewed message
         fetch(`/api/channel/${id}/messages`, {
@@ -548,35 +581,55 @@ function ChatChannel() {
                 'Content-Type': 'application/json',
             },
         })
-        .then(response => response.json())
-        .then(data => {
-            setMessages(data);
-            if (data.length > 0) {
-                const lastMessageId = data[data.length - 1].id; // Assuming 'id' is the message ID
-                // Update last viewed message
-                fetch(`/api/channel/${id}/view`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': apiKey,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ last_message_id_seen: lastMessageId }),
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to update last viewed message');
-                    }
-                    return response.json();
-                })
-                .then(() => console.log('Last viewed message updated successfully'))
-                .catch(error => console.error('Failed to update last viewed message:', error));
-            }
-        })
-        .catch(error => console.error("Failed to fetch messages:", error));
+            .then(response => response.json())
+            .then(data => {
+                setMessages(data);
+                if (data.length > 0) {
+                    const lastMessageId = data[data.length - 1].id; // Assuming 'id' is the message ID
+                    // Update last viewed message
+                    fetch(`/api/channel/${id}/view`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': apiKey,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({last_message_id_seen: lastMessageId}),
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to update last viewed message');
+                            }
+                            return response.json();
+                        })
+                        .then(() => console.log('Last viewed message updated successfully'))
+                        .catch(error => console.error('Failed to update last viewed message:', error));
+                }
+            })
+            .catch(error => console.error("Failed to fetch messages:", error));
     };
 
     const handleEditClick = () => {
         setIsEditing(true); // Enable edit mode
+    };
+
+    const fetchRepliesCount = () => {
+        const apiKey = localStorage.getItem('api_key');
+        fetch(`/api/channel/${id}/message-replies`, {
+            method: 'GET',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                const repliesMap = data.reduce((acc, item) => {
+                    acc[item.message_id] = item.reply_count;
+                    return acc;
+                }, {});
+                setRepliesCount(repliesMap);
+            })
+            .catch(error => console.error("Failed to fetch replies count:", error));
     };
 
     const fetch_room_detail = () => {
@@ -614,10 +667,14 @@ function ChatChannel() {
         // Fetch room details
         fetch_room_detail();
         fetch_messages();
-        fetchRoomDetailsAndUpdateLastViewed();
+        updateLastViewed();
         // const room_interval = setInterval(fetch_room_detail, 500);
-        const message_interval = setInterval(fetch_messages, 500);
-
+        // const message_interval = setInterval(fetch_messages, 500);
+        const message_interval = setInterval(() => {
+            fetch_messages();
+            fetchRepliesCount();
+            // fetchRepliesForMessage();
+        }, 5000);
         return () => clearInterval(message_interval);
 
     }, [id]); // Re-run the effect if the room ID changes
@@ -653,6 +710,7 @@ function ChatChannel() {
             .then(() => {
                 setMessages([...messages, {body: newMessage}]); // Optimistically update the UI
                 setNewMessage(''); // Clear input field
+                updateLastViewed();
             })
             .catch(error => console.error("Failed to post message:", error));
     };
@@ -700,12 +758,30 @@ function ChatChannel() {
                         <div className="messages">
                             {messages.map((message, index) => (
                                 <div key={index} className="message">
-                                    <div className="author">{message.name} :</div>
-                                    <div className="content">{message.body}</div>
-                                    <div></div>
+                                    <div>{message.name}: {message.body}</div>
+                                    {repliesCount[message.id] > 0 &&
+                                        <button onClick={() => handleShowReplies(message.id)}>
+                                            Replies: {repliesCount[message.id]}
+                                        </button>
+                                    }
+                                    {<button>Reply!</button>}
                                 </div>
                             ))}
                         </div>
+                        {selectedMessageId && (
+                            <div className="replies-section">
+                                <h3>Replies</h3>
+                                {replies.length > 0 ? (
+                                    replies.map((reply, index) => (
+                                        <div key={index} className="reply">
+                                            <div><strong>{reply.name}</strong>: {reply.body}</div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p>No replies yet.</p>
+                                )}
+                            </div>
+                        )}
                     </div>
                     {!messages.length && (
                         <div className="noMessages">
