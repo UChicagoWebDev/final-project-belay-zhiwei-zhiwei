@@ -55,11 +55,11 @@ def new_user():
 @app.route('/')
 @app.route('/profile')
 @app.route('/login')
-@app.route('/room')
-@app.route('/room/<channel_id>')
+@app.route('/channel')
+@app.route('/channel/<channel_id>')
+
 def index(channel_id=None):
     return app.send_static_file('index.html')
-
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -92,8 +92,8 @@ def signup():
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    test = query_db('select * from users where name = 123')
-    print(test)
+    # test = query_db('select * from users where name = 123')
+    # print(test)
     authorization = request.json
     name = authorization.get('username')
     print(name)
@@ -146,7 +146,7 @@ def new_channel():
     if user:
         name = "Unnamed channel #" + ''.join(random.choices(string.digits, k=6))
         channel = query_db('insert into channels (name) values (?) returning id, name', [name], one=True)
-        print("room of /api/room", channel['id'], "    ", channel['name'])
+        print("channel of /api/channel", channel['id'], "    ", channel['name'])
         return jsonify({'id': channel['id'], 'name': channel['name']}), 200
     else:
         return {}, 403
@@ -157,9 +157,9 @@ def get_all_channel():
     user = query_db('select * from users where api_key = ?', [api_key], one=True)
     if not user:
         return {}, 403
-    channels = query_db('select * from rooms')
+    channels = query_db('select * from channels')
     if channels:
-        print("GET Room LIST SUCCESSFULLY!!!")
+        print("GET channel LIST SUCCESSFULLY!!!")
         return jsonify([dict(channel) for channel in channels]), 200
     else:
         return jsonify([]), 200
@@ -198,7 +198,7 @@ def get_messages(channel_id):
     user = query_db('select id from users where api_key = ?', [api_key], one=True)
     if not user:
         return {}, 403
-    message = query_db('select * from messages left join users on messages.user_id = users.id where channel_id = ?',
+    message = query_db('select * from messages left join users on messages.user_id = users.id where channels_id = ?',
                        [channel_id])
     if message:
         print("GET MESSAGE SUCCESSFULLY!!!")
