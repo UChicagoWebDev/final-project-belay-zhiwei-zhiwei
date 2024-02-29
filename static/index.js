@@ -9,8 +9,8 @@ const {
 
 function App() {
     const [user, setUser] = React.useState(null);
-
-
+    localStorage.setItem('Zhiwei_(Jackson)_Cao_belay_auth_key_CNETID', 'zhiweic');
+    localStorage.setItem('CNETID', 'zhiweic');
     const handleLogin = (username, password) => {
         return fetch('/api/login', {
             method: 'POST',
@@ -502,58 +502,103 @@ function ChatChannel() {
     const [replies, setReplies] = React.useState([]);
     const [replyInput, setReplyInput] = React.useState({});
 
-    const fetchRepliesForMessage = (messageId) => {
-        const apiKey = localStorage.getItem('api_key');
-        fetch(`/api/messages/${messageId}/replies`, {
+    const goToSplash = () => {
+        history.push('/');
+    };
+
+    const handleUpdateRoomName = () => {
+        fetch(`/api/channel/${id}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': localStorage.getItem('api_key'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({name: newRoomName}),
+        })
+            .then(() => {
+                setRoom({name: newRoomName});
+                setIsEditing(false);
+            })
+            .catch(error => console.error("Failed to update room name:", error));
+    };
+
+    const handleEditClick = () => {
+        setIsEditing(true);
+    };
+
+    const fetch_room_detail = () => {
+        fetch(`/api/channel/${id}`, {
             method: 'GET',
             headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
-            },
+                'Authorization': localStorage.getItem('api_key'),
+                'Content-Type': 'application/json'
+            }
         })
             .then(response => response.json())
             .then(data => {
-                console.log("-----------========_______", data);
-                setReplies(data);
+                setRoom({name: data.name});
+                setNewRoomName(data.name);
             })
-            .catch(error => console.error("Failed to fetch replies:", error));
-    };
+            .catch(error => console.error("Failed to fetch room details:", error));
+    }
 
-    const handleShowReplies = (messageId) => {
-        setSelectedMessageId(messageId);
-        fetchRepliesForMessage(messageId);
-    };
+    const fetch_messages = () => {
+        fetch(`/api/channel/${id}/messages`, {
+            method: 'GET',
+            headers: {
+                'Authorization': localStorage.getItem('api_key'),
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(messagesData => {
+                console.log("Fetched messages: ", messagesData);
+                const fetchReactionsPromises = messagesData.map(message =>
+                    fetch(`/api/message/${message.id}/reaction`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': localStorage.getItem('api_key'),
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(response => response.json())
+                );
 
-    const handlePostReply = (event, messageId) => {
-        event.preventDefault(); // Prevent the default form submission behavior
-        const apiKey = localStorage.getItem('api_key');
-        const replyBody = replyInput[messageId];
+                // Wait for all reactions to be fetched
+                Promise.all(fetchReactionsPromises).then(reactionsData => {
+                    const messagesWithReactions = messagesData.map((message, index) => ({
+                        ...message,
+                        reactions: reactionsData[index]
+                    }));
 
-        if (!replyBody) {
-            alert('Reply cannot be empty');
-            return;
+                    setMessages(messagesWithReactions);
+                });
+            })
+    }
+
+    const handlePostMessage = (event) => {
+        event.preventDefault(); // Prevent form submission from reloading the page
+
+        const trimmedMessage = newMessage.trim();
+
+        if (!trimmedMessage) {
+            alert('Message cannot be empty'); // Alert the user
+            return; // Exit the function early
         }
 
-        fetch(`/api/messages/${messageId}/replies`, {
+        fetch(`/api/channel/${id}/messages`, {
             method: 'POST',
             headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('api_key'),
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify({body: replyBody}),
+            body: JSON.stringify({body: newMessage}),
         })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to post reply');
-                }
-                return response.json();
-            })
             .then(() => {
-                console.log('Reply posted successfully');
-                setReplyInput(prev => ({...prev, [messageId]: ''}));
-                fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
+                setMessages([...messages, {body: newMessage}]);
+                setNewMessage(''); // Clear input field
+                updateLastViewed();
             })
-            .catch(error => console.error('Failed to post reply:', error));
+            .catch(error => console.error("Failed to post message:", error));
     };
 
 
@@ -592,9 +637,6 @@ function ChatChannel() {
             .catch(error => console.error("Failed to fetch messages:", error));
     };
 
-    const handleEditClick = () => {
-        setIsEditing(true);
-    };
 
     const fetchRepliesCount = () => {
         const apiKey = localStorage.getItem('api_key');
@@ -616,36 +658,88 @@ function ChatChannel() {
             .catch(error => console.error("Failed to fetch replies count:", error));
     };
 
-    const fetch_room_detail = () => {
-        fetch(`/api/channel/${id}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': localStorage.getItem('api_key'),
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                setRoom({name: data.name});
-                setNewRoomName(data.name);
-            })
-            .catch(error => console.error("Failed to fetch room details:", error));
-    }
 
-    const fetch_messages = () => {
-        fetch(`/api/channel/${id}/messages`, {
+    const fetchRepliesForMessage = (messageId) => {
+        const apiKey = localStorage.getItem('api_key');
+        fetch(`/api/messages/${messageId}/replies`, {
             method: 'GET',
             headers: {
-                'Authorization': localStorage.getItem('api_key'),
-                'Content-Type': 'application/json'
-            }
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
         })
             .then(response => response.json())
             .then(data => {
-                console.log("Fetched messages: ", data);
-                setMessages(data);
+                console.log("-----------========_______", data);
+                setReplies(data);
             })
-    }
+            .catch(error => console.error("Failed to fetch replies:", error));
+    };
+
+
+    const handlePostReply = (event, messageId) => {
+        event.preventDefault(); // Prevent the default form submission behavior
+        const apiKey = localStorage.getItem('api_key');
+        const replyBody = replyInput[messageId];
+
+        if (!replyBody) {
+            alert('Reply cannot be empty');
+            return;
+        }
+
+        fetch(`/api/messages/${messageId}/replies`, {
+            method: 'POST',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({body: replyBody}),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to post reply');
+                }
+                return response.json();
+            })
+            .then(() => {
+                console.log('Reply posted successfully');
+                setReplyInput(prev => ({...prev, [messageId]: ''}));
+                fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
+            })
+            .catch(error => console.error('Failed to post reply:', error));
+    };
+
+
+    const handleShowReplies = (messageId) => {
+        setSelectedMessageId(messageId);
+        fetchRepliesForMessage(messageId);
+    };
+
+
+    const handleAddReaction = (messageId, emoji) => {
+        const apiKey = localStorage.getItem('api_key');
+        fetch(`/api/message/${messageId}/reaction`, {
+            method: 'POST',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({emoji}),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to add reaction');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.message === "Reaction already exists") {
+                    alert("You have already added this emoji :)");
+                }
+            })
+            .catch(error => console.error('Error adding reaction:', error));
+    };
+
 
     React.useEffect(() => {
         fetch_room_detail();
@@ -658,44 +752,6 @@ function ChatChannel() {
         return () => clearInterval(message_interval);
 
     }, [id]);
-
-    const handleUpdateRoomName = () => {
-        fetch(`/api/channel/${id}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': localStorage.getItem('api_key'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({name: newRoomName}),
-        })
-            .then(() => {
-                setRoom({name: newRoomName});
-                setIsEditing(false);
-            })
-            .catch(error => console.error("Failed to update room name:", error));
-    };
-
-    const handlePostMessage = (event) => {
-        event.preventDefault(); // Prevent form submission from reloading the page
-        fetch(`/api/channel/${id}/messages`, {
-            method: 'POST',
-            headers: {
-                'Authorization': localStorage.getItem('api_key'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({body: newMessage}),
-        })
-            .then(() => {
-                setMessages([...messages, {body: newMessage}]);
-                setNewMessage(''); // Clear input field
-                updateLastViewed();
-            })
-            .catch(error => console.error("Failed to post message:", error));
-    };
-
-    const goToSplash = () => {
-        history.push('/');
-    };
 
     return (
         <div className="room">
@@ -730,15 +786,52 @@ function ChatChannel() {
 
                         <div className="messages">
                             {messages.map((message, index) => (
-                                <div key={index} className="message">
-                                    <div className="author">{message.name} :</div>
-                                    <div className="content">{message.body}</div>
-                                    {repliesCount[message.id] > 0 && (
-                                        <button onClick={() => handleShowReplies(message.id)}>
-                                            Replies: {repliesCount[message.id]}
-                                        </button>
+                                <div key={index} className="message-container">
+                                    <div className="message">
+                                        <div className="author">{message.name} :</div>
+                                        <div className="content">{message.body}</div>
+                                        <div className="message-actions">
+                                            {repliesCount[message.id] > 0 && (
+                                                <button onClick={() => handleShowReplies(message.id)}>
+                                                    Replies: {repliesCount[message.id]}
+                                                </button>
+                                            )}
+                                            <button onClick={() => handleShowReplies(message.id)}>Reply!</button>
+                                        </div>
+
+                                    </div>
+                                    {message.reactions && message.reactions.length > 0 && (
+                                        <div className="reactions">
+                                            {message.reactions.map((reaction, index) => (
+                                                <span key={index} className="reaction"
+                                                      onMouseEnter={(e) => {
+                                                          // Show tooltip
+                                                          e.currentTarget.querySelector('.users').style.display = 'block';
+                                                      }}
+                                                      onMouseLeave={(e) => {
+                                                          // Hide tooltip
+                                                          e.currentTarget.querySelector('.users').style.display = 'none';
+                                                      }}>
+                                                         {reaction.emoji}{reaction.users.split(',').length}&nbsp;
+                                                    <span className="users" style={{display: 'none'}}>
+                                                           {reaction.users}
+                                                         </span>
+                                                    </span>
+                                            ))}
+
+                                        </div>
+
                                     )}
-                                    <button onClick={() => handleShowReplies(message.id)}>Reply!</button>
+                                    <div className="message-reactions">
+                                        {['😀', '❤️', '👍'].map((emoji) => (
+                                            <button key={emoji}
+                                                    onClick={() => handleAddReaction(message.id, emoji)}>
+                                                {emoji}
+                                            </button>
+                                        ))}
+                                    </div>
+
+
                                 </div>
                             ))}
                         </div>

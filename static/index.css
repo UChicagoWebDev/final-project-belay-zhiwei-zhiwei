@@ -12,7 +12,13 @@ body {
     background-color: white;
     box-shadow: 0 0 20px black;
     font-family: sans-serif;
+
 }
+
+/*.message-container {*/
+/*    */
+
+/*}*/
 
 button {
     color: white;
@@ -349,7 +355,6 @@ h3 {
     padding: 12px;
 }
 
-/* Room screen */
 .room .chat {
     display: grid !important;
     grid-template-columns: 2fr 1fr;
@@ -383,29 +388,32 @@ h3 {
 
 .room .chat .messages {
     display: flex;
-    flex-direction: column; /* Stack messages vertically */
+    flex-direction: column;
     margin-right: 20px;
+    padding: 5px 0;
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 .room .chat .message {
-    display: flex; /* This makes it a flex container */
-    align-items: center; /* This vertically centers the items in the container */
+    display: flex;
+    align-items: center;
     border-bottom: 1px solid lightgray;
-    padding: 5px 0; /* Add some padding above and below each message */
+    padding: 5px 0;
 }
 
 .room .chat .message .author {
     color: #c93;
     font-weight: bold;
-    margin-right: 8px; /* Add some space between the author and the content */
+    margin-right: 8px;
 }
 
 .room .chat .message .content {
-    flex-grow: 1; /* This will make the content take up the remaining space */
+    flex-grow: 1;
 }
 
 .room .chat .message button {
-    margin-left: 8px; /* Add some space between buttons and content */
+    margin-left: 8px;
 }
 
 
@@ -432,4 +440,21 @@ h3 {
     border: 1px solid #ccc; /* Light grey border */
     overflow-y: auto; /* Add scroll for overflow */
     max-height: 300px; /* Set a max height */
+}
+
+.room .chat .message-content {
+    display: flex;
+    flex-wrap: wrap; /* Allow the content to wrap onto the next line */
+    align-items: center; /* Align items vertically */
+}
+
+.room .chat .message-reactions {
+    display: flex;
+    justify-content: flex-start; /* Align reactions to the start of the line */
+    margin-top: 5px; /* Space between the message text and reactions */
+}
+
+.room .chat .reaction {
+    margin-right: 5px; /* Space between each reaction */
+    flex: 1;
 }
