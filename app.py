@@ -57,9 +57,9 @@ def new_user():
 @app.route('/login')
 @app.route('/channel')
 @app.route('/channel/<channel_id>')
-
 def index(channel_id=None):
     return app.send_static_file('index.html')
+
 
 @app.errorhandler(404)
 def page_not_found(e):
@@ -151,6 +151,7 @@ def new_channel():
     else:
         return {}, 403
 
+
 @app.route('/api/channel', methods=['GET'])
 def get_all_channel():
     api_key = request.headers.get('Authorization')
@@ -217,8 +218,10 @@ def post_message(channel_id):
 
     user_id = user['id']
     body = request.json.get('body')
-    query_db('insert into messages (user_id, channels_id, body) values (?, ?, ?)', [user_id, channel_id, body], one=True)
+    query_db('insert into messages (user_id, channels_id, body) values (?, ?, ?)', [user_id, channel_id, body],
+             one=True)
     return {}, 200
+
 
 @app.route('/api/channel/<int:channel_id>/view', methods=['POST'])
 def update_last_message_viewed(channel_id):
@@ -263,12 +266,14 @@ def get_unread_messages_count():
 
         if last_viewed_message_id:
             # Modified query to include "and replies_to IS NULL"
-            unread_count = query_db('select count(*) as unread_count from messages where channels_id = ? and id > ? and replies_to IS NULL',
-                                    [channel['id'], last_viewed_message_id['last_message_id_seen']], one=True)
+            unread_count = query_db(
+                'select count(*) as unread_count from messages where channels_id = ? and id > ? and replies_to IS NULL',
+                [channel['id'], last_viewed_message_id['last_message_id_seen']], one=True)
         else:
             # Modified query to include "and replies_to IS NULL"
-            unread_count = query_db('select count(*) as unread_count from messages where channels_id = ? and replies_to IS NULL',
-                                    [channel['id']], one=True)
+            unread_count = query_db(
+                'select count(*) as unread_count from messages where channels_id = ? and replies_to IS NULL',
+                [channel['id']], one=True)
 
         unread_messages_counts.append({'channel_id': channel['id'], 'unread_count': unread_count['unread_count']})
 
@@ -309,12 +314,14 @@ def get_message_replies(message_id):
         return jsonify({'error': 'Unauthorized'}), 401
 
     # SQL query to select all replies to the specific message
-    replies = query_db('SELECT * FROM messages left join users on messages.user_id = users.id WHERE replies_to = ?', [message_id])
+    replies = query_db('SELECT * FROM messages left join users on messages.user_id = users.id WHERE replies_to = ?',
+                       [message_id])
 
     if replies:
         return jsonify([dict(reply) for reply in replies]), 200
     else:
         return jsonify([]), 200
+
 
 @app.route('/api/messages/<int:message_id>/replies', methods=['POST'])
 def post_reply(message_id):
@@ -331,11 +338,19 @@ def post_reply(message_id):
     if not reply_body:
         return jsonify({'error': 'Missing reply body'}), 400
 
-    # Insert the new reply into the database
-    try:
-        query_db('INSERT INTO messages (user_id, channels_id, replies_to, body) VALUES (?, ?, ?, ?)',
-                 [user['id'], data.get('channel_id'), message_id, reply_body])
-        return jsonify({'message': 'Reply posted successfully'}), 201
-    except Exception as e:
-        return jsonify({'error': 'Failed to post reply', 'details': str(e)}), 500
+        # Insert the new reply into the database
+    query_db('INSERT INTO messages (user_id, replies_to, body) VALUES (?, ?, ?)',
+             [user['id'], message_id, reply_body])
+    return {}, 200
 
+# @app.route('/api/channel/<int:channel_id>/messages', methods=['POST'])
+# def post_ss(channel_id):
+#     api_key = request.headers.get('Authorization')
+#     user = query_db('select id from users where api_key = ?', [api_key], one=True)
+#     if not user:
+#         return {}, 403
+#
+#     user_id = user['id']
+#     body = request.json.get('body')
+#     query_db('insert into messages (user_id, channels_id, body) values (?, ?, ?)', [user_id, channel_id, body], one=True)
+#     return {}, 200

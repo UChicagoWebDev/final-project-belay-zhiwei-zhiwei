@@ -533,6 +533,7 @@ function ChatChannel() {
     const [repliesCount, setRepliesCount] = React.useState({});
     const [selectedMessageId, setSelectedMessageId] = React.useState(null);
     const [replies, setReplies] = React.useState([]);
+    const [replyInput, setReplyInput] = React.useState({});
 
     const fetchRepliesForMessage = (messageId) => {
         const apiKey = localStorage.getItem('api_key');
@@ -545,7 +546,7 @@ function ChatChannel() {
         })
             .then(response => response.json())
             .then(data => {
-                console.log("-----------========_______",data);
+                console.log("-----------========_______", data);
                 setReplies(data);
             })
             .catch(error => console.error("Failed to fetch replies:", error));
@@ -556,23 +557,44 @@ function ChatChannel() {
         fetchRepliesForMessage(messageId);
     };
 
+    const handlePostReply = (event, messageId) => {
+        event.preventDefault(); // Prevent the default form submission behavior
+        const apiKey = localStorage.getItem('api_key');
+        const replyBody = replyInput[messageId];
+        // Check if the reply body is not empty
+        if (!replyBody.trim()) {
+            alert('Reply cannot be empty');
+            return;
+        }
+
+        // API call to post a new reply to the message
+        fetch(`/api/messages/${messageId}/replies`, {
+            method: 'POST',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({body: replyBody}),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to post reply');
+                }
+                return response.json();
+            })
+            .then(() => {
+                console.log('Reply posted successfully');
+                // Optionally, clear the reply input field and fetch replies again to update the UI
+                // Reset the reply input field for the message and refetch the replies to update the UI
+                setReplyInput(prev => ({ ...prev, [messageId]: '' }));
+                fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
+            })
+            .catch(error => console.error('Failed to post reply:', error));
+    };
+
+
     const updateLastViewed = () => {
         const apiKey = localStorage.getItem('api_key');
-
-        // Fetch room details
-        // fetch(`/api/channel/${id}`, {
-        //     method: 'GET',
-        //     headers: {
-        //         'Authorization': apiKey,
-        //         'Content-Type': 'application/json',
-        //     },
-        // })
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         setRoom({name: data.name});
-        //     })
-        //     .catch(error => console.error("Failed to fetch room details:", error));
-
         // Fetch messages for the room and update last viewed message
         fetch(`/api/channel/${id}/messages`, {
             method: 'GET',
@@ -674,7 +696,7 @@ function ChatChannel() {
             fetch_messages();
             fetchRepliesCount();
             // fetchRepliesForMessage();
-        }, 5000);
+        }, 500);
         return () => clearInterval(message_interval);
 
     }, [id]); // Re-run the effect if the room ID changes
@@ -764,7 +786,7 @@ function ChatChannel() {
                                             Replies: {repliesCount[message.id]}
                                         </button>
                                     }
-                                    {<button>Reply!</button>}
+                                    {<button onClick={() => handleShowReplies(message.id)}>Reply!</button>}
                                 </div>
                             ))}
                         </div>
@@ -780,7 +802,22 @@ function ChatChannel() {
                                 ) : (
                                     <p>No replies yet.</p>
                                 )}
+                                <div className="comment_box">
+                                    <label htmlFor="comment">What do you have to say?</label>
+                                    <textarea
+                                        name="comment"
+                                        value={replyInput[selectedMessageId] || ''}
+                                        onChange={(e) => setReplyInput({
+                                            ...replyInput,
+                                            [selectedMessageId]: e.target.value
+                                        })}
+                                    ></textarea>
+                                    <button onClick={(e) => handlePostReply(e, selectedMessageId)}
+                                            className="post_room_messages">Post
+                                    </button>
+                                </div>
                             </div>
+
                         )}
                     </div>
                     {!messages.length && (
