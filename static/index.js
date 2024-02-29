@@ -85,7 +85,6 @@ function SplashScreen(props, setUser) {
         fetch('/api/signup', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            // No need to send a body for the signup as it generates a new user automatically
         })
             .then(response => {
                 if (!response.ok) {
@@ -98,10 +97,6 @@ function SplashScreen(props, setUser) {
 
                 localStorage.setItem('api_key', data.api_key);
                 props.setUser({id: data.id, username: data.username, apiKey: data.api_key});
-                // Update user state with new user details, you might need to lift this state up or use context/redux if this component doesn't hold the user state
-                // setUser({ id: data.id, username: data.username, apiKey: data.api_key });
-
-                // Redirect to profile page
                 history.push('/profile');
             })
             .catch(error => {
@@ -149,12 +144,10 @@ function SplashScreen(props, setUser) {
                     props.setUser({
                         id: userData.id,
                         username: userData.username,
-                        // Include any other user fields you need
                     });
                 })
                 .catch(error => {
                     console.error('Error fetching user data:', error);
-                    // Handle error, e.g., by clearing localStorage if the API key is invalid
                 });
         }
     }
@@ -198,9 +191,6 @@ function SplashScreen(props, setUser) {
                 'Authorization': apiKey,
                 'Content-Type': 'application/json',
             },
-            // Depending on your API, you might need to send a body.
-            // If your API generates a room name by default, you might not need to send a body.
-            // body: JSON.stringify({ name: 'New Room Name' }),
         })
             .then(response => {
                 if (!response.ok) {
@@ -210,7 +200,6 @@ function SplashScreen(props, setUser) {
             })
             .then(newRoom => {
                 history.push(`/channel/${newRoom.id}`);
-                // Add the new room to the existing list of rooms
                 setRooms(prevRooms => [...prevRooms, newRoom]);
 
             })
@@ -219,23 +208,16 @@ function SplashScreen(props, setUser) {
             });
     };
 
-    // React.useEffect(() => {
-    //
-    //     fetchRooms();
-    //     fetchUserInfo();
-    //     fetchUnreadMessageCounts();
-    // }, []); // The empty array ensures this effect runs only once after the initial render
-
     React.useEffect(() => {
         fetchRooms();
         fetchUserInfo();
         fetchUnreadMessageCounts();
         const counts_interval = setInterval(fetchUnreadMessageCounts, 1000);
         return () => clearInterval(counts_interval);
-    }, []); // The empty array ensures this effect runs only once after the initial render
+    }, []);
 
     const navigateToChannel = (channelId) => {
-        history.push(`/channel/${channelId}`); // Use template literals to construct the path
+        history.push(`/channel/${channelId}`);
     };
 
     return (
@@ -372,7 +354,6 @@ function LoginForm(props) {
 function Profile({user, setUser}) {
     const history = useHistory();
 
-    // Assuming useState hook is used for form fields
     const [username, setUsername] = React.useState(user ? user.username : '');
     const [password, setPassword] = React.useState('');
     const [repeatPassword, setRepeatPassword] = React.useState('');
@@ -380,7 +361,7 @@ function Profile({user, setUser}) {
 
     const handleLogout = () => {
         setUser(null);
-        localStorage.removeItem('api_key'); // Ensure key matches what's used elsewhere
+        localStorage.removeItem('api_key');
         history.push("/login");
     };
 
@@ -392,7 +373,7 @@ function Profile({user, setUser}) {
                 'Authorization': apiKey,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({name: username}) // Assuming the API expects the new username under the key 'name'
+            body: JSON.stringify({name: username})
         })
             .then(response => {
                 if (!response.ok) {
@@ -402,8 +383,8 @@ function Profile({user, setUser}) {
             })
             .then(updatedUser => {
                 console.log('Username updated to', updatedUser.username);
-                setUser(updatedUser); // Update the user state with the new user information
-                setUsername(updatedUser.username); // Update the username state to reflect the change
+                setUser(updatedUser);
+                setUsername(updatedUser.username);
             })
             .catch(error => {
                 console.error('Error updating username:', error);
@@ -423,14 +404,13 @@ function Profile({user, setUser}) {
                 'Authorization': apiKey,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({password: password}) // Assuming the API expects the new password under the key 'password'
+            body: JSON.stringify({password: password})
         })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to update password');
                 }
                 console.log('Password updated successfully');
-                // Optionally, clear the password fields after successful update
                 setPassword('');
                 setRepeatPassword('');
             })
@@ -465,7 +445,7 @@ function Profile({user, setUser}) {
                 })
                 .then(userData => {
                     setUsername(userData.username);
-                    setPassword(userData.password); // Note: Storing and displaying passwords in the client-side is not recommended
+                    setPassword(userData.password);
                     setRepeatPassword(userData.password);
                 })
                 .catch(error => {
@@ -509,7 +489,6 @@ function Profile({user, setUser}) {
 
 
 // ChatChannel component changes
-// Extract channelId from URL params using useParams hook
 function ChatChannel() {
     let {id} = useParams(); // Get the channel ID from the URL
     let history = useHistory();
@@ -555,7 +534,6 @@ function ChatChannel() {
             return;
         }
 
-        // API call to post a new reply to the message
         fetch(`/api/messages/${messageId}/replies`, {
             method: 'POST',
             headers: {
@@ -572,8 +550,6 @@ function ChatChannel() {
             })
             .then(() => {
                 console.log('Reply posted successfully');
-                // Optionally, clear the reply input field and fetch replies again to update the UI
-                // Reset the reply input field for the message and refetch the replies to update the UI
                 setReplyInput(prev => ({...prev, [messageId]: ''}));
                 fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
             })
@@ -583,7 +559,6 @@ function ChatChannel() {
 
     const updateLastViewed = () => {
         const apiKey = localStorage.getItem('api_key');
-        // Fetch messages for the room and update last viewed message
         fetch(`/api/channel/${id}/messages`, {
             method: 'GET',
             headers: {
@@ -595,8 +570,7 @@ function ChatChannel() {
             .then(data => {
                 setMessages(data);
                 if (data.length > 0) {
-                    const lastMessageId = data[data.length - 1].id; // Assuming 'id' is the message ID
-                    // Update last viewed message
+                    const lastMessageId = data[data.length - 1].id;
                     fetch(`/api/channel/${id}/view`, {
                         method: 'POST',
                         headers: {
@@ -619,7 +593,7 @@ function ChatChannel() {
     };
 
     const handleEditClick = () => {
-        setIsEditing(true); // Enable edit mode
+        setIsEditing(true);
     };
 
     const fetchRepliesCount = () => {
@@ -653,7 +627,7 @@ function ChatChannel() {
             .then(response => response.json())
             .then(data => {
                 setRoom({name: data.name});
-                setNewRoomName(data.name); // Pre-fill with current room name
+                setNewRoomName(data.name);
             })
             .catch(error => console.error("Failed to fetch room details:", error));
     }
@@ -668,31 +642,26 @@ function ChatChannel() {
         })
             .then(response => response.json())
             .then(data => {
-                console.log("Fetched messages: ", data); // Log the fetched data for debugging
+                console.log("Fetched messages: ", data);
                 setMessages(data);
             })
     }
 
     React.useEffect(() => {
-        // Fetch room details
         fetch_room_detail();
         fetch_messages();
         updateLastViewed();
-        // const room_interval = setInterval(fetch_room_detail, 500);
-        // const message_interval = setInterval(fetch_messages, 500);
         const message_interval = setInterval(() => {
             fetch_messages();
             fetchRepliesCount();
-            // fetchRepliesForMessage();
-        }, 5000);
+        }, 500);
         return () => clearInterval(message_interval);
 
-    }, [id]); // Re-run the effect if the room ID changes
+    }, [id]);
 
     const handleUpdateRoomName = () => {
-        // API call to update the room name
         fetch(`/api/channel/${id}`, {
-            method: 'POST', // Or 'PUT', depending on your API
+            method: 'POST',
             headers: {
                 'Authorization': localStorage.getItem('api_key'),
                 'Content-Type': 'application/json'
@@ -708,7 +677,6 @@ function ChatChannel() {
 
     const handlePostMessage = (event) => {
         event.preventDefault(); // Prevent form submission from reloading the page
-        // API call to post a new message
         fetch(`/api/channel/${id}/messages`, {
             method: 'POST',
             headers: {
@@ -718,7 +686,7 @@ function ChatChannel() {
             body: JSON.stringify({body: newMessage}),
         })
             .then(() => {
-                setMessages([...messages, {body: newMessage}]); // Optimistically update the UI
+                setMessages([...messages, {body: newMessage}]);
                 setNewMessage(''); // Clear input field
                 updateLastViewed();
             })
@@ -826,7 +794,6 @@ function ChatChannel() {
 }
 
 
-// Render your App component as before
 const rootContainer = document.getElementById('root');
 const root = ReactDOM.createRoot(rootContainer);
 root.render(<App/>);

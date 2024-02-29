@@ -189,7 +189,6 @@ def update_channel_name(channel_id):
     print("new_name", new_name)
     query_db('update channels set name = ? where id = ?', [new_name, channel_id])
     print("update the channel name here ----------------")
-    # room = query_db('select * from rooms where id = ?', [chat_id])
     return {}, 200
 
 
@@ -229,20 +228,14 @@ def update_last_message_viewed(channel_id):
     user = query_db('select * from users where api_key = ?', [api_key], one=True)
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
-
-    # Get the ID of the last message the user has seen in this channel
     last_message_id = request.json.get('last_message_id_seen')
-
-    # Check if there's an existing view entry for this user and channel
     existing_view = query_db('select * from user_message_views where user_id = ? and channel_id = ?',
                              [user['id'], channel_id], one=True)
 
     if existing_view:
-        # Update the existing record with the new last_message_id_seen
         query_db('update user_message_views set last_message_id_seen = ? where user_id = ? and channel_id = ?',
                  [last_message_id, user['id'], channel_id])
     else:
-        # Create a new record in user_message_views
         query_db('insert into user_message_views (user_id, channel_id, last_message_id_seen) values (?, ?, ?)',
                  [user['id'], channel_id, last_message_id])
 
@@ -265,12 +258,10 @@ def get_unread_messages_count():
             [user['id'], channel['id']], one=True)
 
         if last_viewed_message_id:
-            # Modified query to include "and replies_to IS NULL"
             unread_count = query_db(
                 'select count(*) as unread_count from messages where channels_id = ? and id > ? and replies_to IS NULL',
                 [channel['id'], last_viewed_message_id['last_message_id_seen']], one=True)
         else:
-            # Modified query to include "and replies_to IS NULL"
             unread_count = query_db(
                 'select count(*) as unread_count from messages where channels_id = ? and replies_to IS NULL',
                 [channel['id']], one=True)
@@ -287,13 +278,11 @@ def get_message_replies_count(channel_id):
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    # Retrieve all parent messages in the specified channel
     parent_messages = query_db(
         'select * from messages where channels_id = ? and replies_to IS NULL', [channel_id])
 
     replies_counts = []
     for message in parent_messages:
-        # Count replies for each parent message
         replies_count = query_db(
             'select count(*) as reply_count from messages where replies_to = ?', [message['id']], one=True)
 
@@ -313,7 +302,6 @@ def get_message_replies(message_id):
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    # SQL query to select all replies to the specific message
     replies = query_db('SELECT * FROM messages left join users on messages.user_id = users.id WHERE replies_to = ?',
                        [message_id])
 
@@ -331,14 +319,12 @@ def post_reply(message_id):
     if not user:
         return jsonify({'error': 'Unauthorized'}), 401
 
-    # Extract the reply body from the request
     data = request.json
     reply_body = data.get('body')
 
     if not reply_body:
         return jsonify({'error': 'Missing reply body'}), 400
 
-        # Insert the new reply into the database
     query_db('INSERT INTO messages (user_id, replies_to, body) VALUES (?, ?, ?)',
              [user['id'], message_id, reply_body])
     return {}, 200
