@@ -343,14 +343,3 @@ def post_reply(message_id):
              [user['id'], message_id, reply_body])
     return {}, 200
 
-# @app.route('/api/channel/<int:channel_id>/messages', methods=['POST'])
-# def post_ss(channel_id):
-#     api_key = request.headers.get('Authorization')
-#     user = query_db('select id from users where api_key = ?', [api_key], one=True)
-#     if not user:
-#         return {}, 403
-#
-#     user_id = user['id']
-#     body = request.json.get('body')
-#     query_db('insert into messages (user_id, channels_id, body) values (?, ?, ?)', [user_id, channel_id, body], one=True)
-#     return {}, 200

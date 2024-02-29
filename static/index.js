@@ -586,7 +586,7 @@ function ChatChannel() {
                 console.log('Reply posted successfully');
                 // Optionally, clear the reply input field and fetch replies again to update the UI
                 // Reset the reply input field for the message and refetch the replies to update the UI
-                setReplyInput(prev => ({ ...prev, [messageId]: '' }));
+                setReplyInput(prev => ({...prev, [messageId]: ''}));
                 fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
             })
             .catch(error => console.error('Failed to post reply:', error));
@@ -696,7 +696,7 @@ function ChatChannel() {
             fetch_messages();
             fetchRepliesCount();
             // fetchRepliesForMessage();
-        }, 500);
+        }, 5000);
         return () => clearInterval(message_interval);
 
     }, [id]); // Re-run the effect if the room ID changes
@@ -771,25 +771,22 @@ function ChatChannel() {
             <div className="clip">
                 <div className="container">
                     <div className="chat">
-                        <div className="comment_box">
-                            <label htmlFor="comment">What do you have to say?</label>
-                            <textarea name="comment" value={newMessage}
-                                      onChange={(e) => setNewMessage(e.target.value)}></textarea>
-                            <button onClick={handlePostMessage} className="post_room_messages">Post</button>
-                        </div>
+
                         <div className="messages">
                             {messages.map((message, index) => (
                                 <div key={index} className="message">
-                                    <div>{message.name}: {message.body}</div>
-                                    {repliesCount[message.id] > 0 &&
+                                    <div className="author">{message.name} :</div>
+                                    <div className="content">{message.body}</div>
+                                    {repliesCount[message.id] > 0 && (
                                         <button onClick={() => handleShowReplies(message.id)}>
                                             Replies: {repliesCount[message.id]}
                                         </button>
-                                    }
-                                    {<button onClick={() => handleShowReplies(message.id)}>Reply!</button>}
+                                    )}
+                                    <button onClick={() => handleShowReplies(message.id)}>Reply!</button>
                                 </div>
                             ))}
                         </div>
+
                         {selectedMessageId && (
                             <div className="replies-section">
                                 <h3>Replies</h3>
@@ -819,7 +816,15 @@ function ChatChannel() {
                             </div>
 
                         )}
+                        {!selectedMessageId && (<div></div>)}
+                        <div className="comment_box">
+                            <label htmlFor="comment">What do you have to say?</label>
+                            <textarea name="comment" value={newMessage}
+                                      onChange={(e) => setNewMessage(e.target.value)}></textarea>
+                            <button onClick={handlePostMessage} className="post_room_messages">Post</button>
+                        </div>
                     </div>
+
                     {!messages.length && (
                         <div className="noMessages">
                             <h2>Oops, we can't find that room!</h2>
