@@ -649,13 +649,14 @@ function ChatChannel() {
         })
             .then(response => response.json())
             .then(data => {
+                console.log("123123123", data)
                 const repliesMap = data.reduce((acc, item) => {
                     acc[item.message_id] = item.reply_count;
                     return acc;
                 }, {});
                 setRepliesCount(repliesMap);
             })
-            .catch(error => console.error("Failed to fetch replies count:", error));
+            .catch(error => console.log("Failed to fetch replies count: There is no massages at this Channel aright now"));
     };
 
 

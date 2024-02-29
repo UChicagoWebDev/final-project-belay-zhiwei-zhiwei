@@ -281,6 +281,10 @@ def get_message_replies_count(channel_id):
     parent_messages = query_db(
         'select * from messages where channels_id = ? and replies_to IS NULL', [channel_id])
 
+    if not parent_messages:
+        return jsonify({}), 200
+
+
     replies_counts = []
     for message in parent_messages:
         replies_count = query_db(
@@ -290,7 +294,6 @@ def get_message_replies_count(channel_id):
             'message_id': message['id'],
             'reply_count': replies_count['reply_count']
         })
-
     return jsonify(replies_counts), 200
 
 
