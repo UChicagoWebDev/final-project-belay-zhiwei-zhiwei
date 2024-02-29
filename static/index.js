@@ -114,7 +114,10 @@ function App() {
                         <Profile user={user} setUser={setUser}/>
                     </Route>
                     <Route path="/channel/:id">
-                        <ChatChannel/>
+                        <ChatChannel fetchUnreadMessageCounts={fetchUnreadMessageCounts}
+                                      unreadCounts={unreadCounts}
+                                      fetchRooms={fetchRooms}
+                                      rooms={rooms}/>
                     </Route>
                     <Route exact path="/">
                         <SplashScreen fetchUnreadMessageCounts={fetchUnreadMessageCounts}
@@ -195,38 +198,6 @@ function SplashScreen(props) {
                 });
         }
     }
-
-    // function fetchRooms() {
-    //
-    //     console.log("splashScreen apiKey", apiKey);
-    //     if (!apiKey) {
-    //         console.error("API key not found.");
-    //         // setIsLoading(false);
-    //         return;
-    //     }
-    //
-    //     fetch('/api/channel', {
-    //         method: 'GET',
-    //         headers: {
-    //             'Authorization': apiKey,
-    //             'Content-Type': 'application/json',
-    //         },
-    //     })
-    //         .then(response => {
-    //             if (!response.ok) {
-    //                 throw new Error('Network response was not ok');
-    //             }
-    //             return response.json();
-    //         })
-    //         .then(data => {
-    //             setRooms(data);
-    //             // setIsLoading(false);
-    //         })
-    //         .catch(error => {
-    //             console.error('There has been a problem with your fetch operation:', error);
-    //             // setIsLoading(false);
-    //         });
-    // }
 
     const handleCreateRoom = () => {
         fetch('/api/channel', {
@@ -536,7 +507,9 @@ function Profile({user, setUser}) {
 
 
 // ChatChannel component changes
-function ChatChannel() {
+function ChatChannel(props) {
+    const {rooms} = props;
+    const {unreadCounts} = props;
     let {id} = useParams(); // Get the channel ID from the URL
     let history = useHistory();
     const [room, setRoom] = React.useState({name: ''}); // State to hold room details
@@ -806,14 +779,21 @@ function ChatChannel() {
             .catch(error => console.error('Error adding reaction:', error));
     };
 
+    const navigateToChannel = (channelId) => {
+        history.push(`/channel/${channelId}`);
+    };
 
     React.useEffect(() => {
+        const apiKey = localStorage.getItem('api_key');
+        props.fetchRooms();
+        props.fetchUnreadMessageCounts(apiKey);
         fetch_room_detail();
         fetch_messages();
         updateLastViewed();
         const message_interval = setInterval(() => {
             fetch_messages();
             fetchRepliesCount();
+            props.fetchUnreadMessageCounts(apiKey)
             if (selectedMessageId)
                 fetchRepliesForMessage(selectedMessageId);
         }, 500);
@@ -823,6 +803,21 @@ function ChatChannel() {
 
     return (
         <div className="room">
+            <div className="rooms">
+                {rooms.length > 0 ? (
+                    <div className="roomList">
+                        <h2>Rooms</h2>
+                        {rooms.map((room) => (
+                            <button key={room.id} onClick={() => navigateToChannel(room.id)}>
+                                {room.name} {unreadCounts[room.id] !== 0 &&
+                                <strong>({unreadCounts[room.id]} unread messages)</strong>}
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="noRooms">No rooms yet! You get to be first!</div>
+                )}
+            </div>
             <div className="header">
                 <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
                 <h4>2</h4>
@@ -848,8 +843,11 @@ function ChatChannel() {
                 </div>
             </div>
 
+
             <div className="clip">
+
                 <div className="container">
+
                     <div className="chat">
 
                         <div className="messages">
