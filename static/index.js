@@ -9,8 +9,11 @@ const {
 
 function App() {
     const [user, setUser] = React.useState(null);
+    const [unreadCounts, setUnreadCounts] = React.useState({});
     localStorage.setItem('Zhiwei_(Jackson)_Cao_belay_auth_key_CNETID', 'zhiweic');
     localStorage.setItem('CNETID', 'zhiweic');
+
+
     const handleLogin = (username, password) => {
         return fetch('/api/login', {
             method: 'POST',
@@ -45,6 +48,28 @@ function App() {
             });
     };
 
+    const fetchUnreadMessageCounts = (apiKey) => {
+        if (apiKey) {
+            fetch('/api/user/unread-messages', {
+                method: 'GET',
+                headers: {
+                    'Authorization': apiKey,
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    const counts = data.reduce((acc, curr) => {
+                        acc[curr.channel_id] = curr.unread_count;
+                        return acc;
+                    }, {});
+                    setUnreadCounts(counts);
+                })
+                .catch((error) => console.error('Failed to fetch unread messages count:', error));
+        }
+
+    };
+
     return (
         <BrowserRouter>
             <div>
@@ -59,7 +84,10 @@ function App() {
                         <ChatChannel/>
                     </Route>
                     <Route exact path="/">
-                        <SplashScreen user={user} setUser={setUser}/>
+                        <SplashScreen fetchUnreadMessageCounts={fetchUnreadMessageCounts}
+                                      unreadCounts={unreadCounts}
+                                      user={user}
+                                      setUser={setUser}/>
                     </Route>
                     <Route path="*">
                         <div>Page not found</div>
@@ -70,9 +98,9 @@ function App() {
     );
 }
 
-function SplashScreen(props, setUser) {
+function SplashScreen(props) {
     const [rooms, setRooms] = React.useState([]);
-    const [unreadCounts, setUnreadCounts] = React.useState({});
+    const {unreadCounts} = props;
     const [isLoading, setIsLoading] = React.useState(true);
     const apiKey = localStorage.getItem('api_key');
     const history = useHistory();
@@ -102,25 +130,6 @@ function SplashScreen(props, setUser) {
             .catch(error => {
                 console.error('Error during signup:', error);
             });
-    };
-
-    const fetchUnreadMessageCounts = () => {
-        fetch('/api/user/unread-messages', {
-            method: 'GET',
-            headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
-            },
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                const counts = data.reduce((acc, curr) => {
-                    acc[curr.channel_id] = curr.unread_count;
-                    return acc;
-                }, {});
-                setUnreadCounts(counts);
-            })
-            .catch((error) => console.error('Failed to fetch unread messages count:', error));
     };
 
     function fetchUserInfo() {
@@ -211,8 +220,8 @@ function SplashScreen(props, setUser) {
     React.useEffect(() => {
         fetchRooms();
         fetchUserInfo();
-        fetchUnreadMessageCounts();
-        const counts_interval = setInterval(fetchUnreadMessageCounts, 1000);
+        props.fetchUnreadMessageCounts(apiKey);
+        const counts_interval = setInterval(props.fetchUnreadMessageCounts(apiKey), 1000);
         return () => clearInterval(counts_interval);
     }, []);
 
@@ -222,18 +231,22 @@ function SplashScreen(props, setUser) {
 
     return (
         <div className="splash container">
-            <div className="splashHeader">
-                <div className="loginHeader">
-                    {props.user ? (
-                        <div className="loggedIn" onClick={() => history.push('/profile')}>
-                            <span className="username">Welcome back, {props.user.username}!</span>
-                            <span className="material-symbols-outlined md-18">person</span>
-                        </div>
-                    ) : (
-                        <button onClick={handleLoginClick}>Login</button>
-                    )}
-                </div>
+            <div className="rooms">
+                {!isLoading && rooms.length > 0 ? (
+                    <div className="roomList">
+                        <h2>Rooms</h2>
+                        {rooms.map((room) => (
+                            <button key={room.id} onClick={() => navigateToChannel(room.id)}>
+                                {room.name} {unreadCounts[room.id] !== 0 &&
+                                <strong>({unreadCounts[room.id]} unread messages)</strong>}
+                            </button>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="noRooms">No rooms yet! You get to be first!</div>
+                )}
             </div>
+
 
             <div className="hero">
                 <div className="logo">
@@ -248,21 +261,20 @@ function SplashScreen(props, setUser) {
                 )}
             </div>
 
-            <h2>Rooms</h2>
-            <div className="rooms">
-                {!isLoading && rooms.length > 0 ? (
-                    <div className="roomList">
-                        {rooms.map((room) => (
-                            <button key={room.id} onClick={() => navigateToChannel(room.id)}>
-                                {room.name} {unreadCounts[room.id] !== 0 &&
-                                <strong>({unreadCounts[room.id]} unread messages)</strong>}
-                            </button>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="noRooms">No rooms yet! You get to be first!</div>
-                )}
+
+            <div className="splashHeader">
+                <div className="loginHeader">
+                    {props.user ? (
+                        <div className="loggedIn" onClick={() => history.push('/profile')}>
+                            <span className="username">Welcome back, {props.user.username}!</span>
+                            <span className="material-symbols-outlined md-18">person</span>
+                        </div>
+                    ) : (
+                        <button onClick={handleLoginClick}>Login</button>
+                    )}
+                </div>
             </div>
+
         </div>
     );
 }
