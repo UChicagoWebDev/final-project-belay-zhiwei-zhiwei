@@ -7,10 +7,8 @@ const {
     useParams,
 } = ReactRouterDOM;
 
-// Refactor App component to use BrowserRouter and Route
 function App() {
     const [user, setUser] = React.useState(null);
-    const [channels, setChannels] = React.useState([]);
 
 
     const handleLogin = (username, password) => {
@@ -23,14 +21,12 @@ function App() {
         })
             .then(response => {
                 if (!response.ok) {
-                    // Convert non-2xx HTTP responses into errors
                     throw new Error('Login failed');
                 }
                 return response.json();
             })
             .then(data => {
                 console.log("data", data)
-                // Assuming the API returns a user object with an api_key on successful login
                 setUser({
                     id: data.id,
                     username: data.username,
@@ -39,18 +35,13 @@ function App() {
 
                 console.log("user", user);
 
-                // Store the api_key in localStorage or another secure place for future requests
                 localStorage.setItem('api_key', data.api_key);
-                // Navigate to the splash page or another appropriate page upon login
-                // This can be done using the useHistory hook if this logic is inside a component or withRouter HOC
-                // For example: history.push('/');
 
-                return true; // Indicate success
+                return true;
             })
             .catch(error => {
                 console.error('Error during login:', error);
-                // Optionally handle login failure (e.g., by showing an error message) here
-                return false; // Indicate failure
+                return false;
             });
     };
 
@@ -79,9 +70,6 @@ function App() {
     );
 }
 
-// Refactor other components as needed to work with react-router-dom
-
-// SplashScreen component changes
 function SplashScreen(props, setUser) {
     const [rooms, setRooms] = React.useState([]);
     const [unreadCounts, setUnreadCounts] = React.useState({});
@@ -561,8 +549,8 @@ function ChatChannel() {
         event.preventDefault(); // Prevent the default form submission behavior
         const apiKey = localStorage.getItem('api_key');
         const replyBody = replyInput[messageId];
-        // Check if the reply body is not empty
-        if (!replyBody.trim()) {
+
+        if (!replyBody) {
             alert('Reply cannot be empty');
             return;
         }
