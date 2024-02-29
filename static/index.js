@@ -10,6 +10,7 @@ const {
 function App() {
     const [user, setUser] = React.useState(null);
     const [unreadCounts, setUnreadCounts] = React.useState({});
+    const [rooms, setRooms] = React.useState([]);
     localStorage.setItem('Zhiwei_(Jackson)_Cao_belay_auth_key_CNETID', 'zhiweic');
     localStorage.setItem('CNETID', 'zhiweic');
 
@@ -70,6 +71,38 @@ function App() {
 
     };
 
+    const fetchRooms = () => {
+        const apiKey = localStorage.getItem('api_key');
+        console.log("splashScreen apiKey", apiKey);
+        if (!apiKey) {
+            console.error("API key not found.");
+            // setIsLoading(false);
+            return;
+        }
+
+        fetch('/api/channel', {
+            method: 'GET',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                setRooms(data);
+                // setIsLoading(false);
+            })
+            .catch(error => {
+                console.error('There has been a problem with your fetch operation:', error);
+                // setIsLoading(false);
+            });
+    }
+
     return (
         <BrowserRouter>
             <div>
@@ -86,6 +119,8 @@ function App() {
                     <Route exact path="/">
                         <SplashScreen fetchUnreadMessageCounts={fetchUnreadMessageCounts}
                                       unreadCounts={unreadCounts}
+                                      fetchRooms={fetchRooms}
+                                      rooms={rooms}
                                       user={user}
                                       setUser={setUser}/>
                     </Route>
@@ -99,9 +134,9 @@ function App() {
 }
 
 function SplashScreen(props) {
-    const [rooms, setRooms] = React.useState([]);
+    const {rooms} = props;
     const {unreadCounts} = props;
-    const [isLoading, setIsLoading] = React.useState(true);
+    // const [isLoading, setIsLoading] = React.useState(true);
     const apiKey = localStorage.getItem('api_key');
     const history = useHistory();
     console.log("props", props);
@@ -161,37 +196,37 @@ function SplashScreen(props) {
         }
     }
 
-    function fetchRooms() {
-
-        console.log("splashScreen apiKey", apiKey);
-        if (!apiKey) {
-            console.error("API key not found.");
-            setIsLoading(false);
-            return;
-        }
-
-        fetch('/api/channel', {
-            method: 'GET',
-            headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                setRooms(data);
-                setIsLoading(false);
-            })
-            .catch(error => {
-                console.error('There has been a problem with your fetch operation:', error);
-                setIsLoading(false);
-            });
-    }
+    // function fetchRooms() {
+    //
+    //     console.log("splashScreen apiKey", apiKey);
+    //     if (!apiKey) {
+    //         console.error("API key not found.");
+    //         // setIsLoading(false);
+    //         return;
+    //     }
+    //
+    //     fetch('/api/channel', {
+    //         method: 'GET',
+    //         headers: {
+    //             'Authorization': apiKey,
+    //             'Content-Type': 'application/json',
+    //         },
+    //     })
+    //         .then(response => {
+    //             if (!response.ok) {
+    //                 throw new Error('Network response was not ok');
+    //             }
+    //             return response.json();
+    //         })
+    //         .then(data => {
+    //             setRooms(data);
+    //             // setIsLoading(false);
+    //         })
+    //         .catch(error => {
+    //             console.error('There has been a problem with your fetch operation:', error);
+    //             // setIsLoading(false);
+    //         });
+    // }
 
     const handleCreateRoom = () => {
         fetch('/api/channel', {
@@ -218,7 +253,7 @@ function SplashScreen(props) {
     };
 
     React.useEffect(() => {
-        fetchRooms();
+        props.fetchRooms();
         fetchUserInfo();
         props.fetchUnreadMessageCounts(apiKey);
         const counts_interval = setInterval(props.fetchUnreadMessageCounts(apiKey), 1000);
@@ -232,7 +267,7 @@ function SplashScreen(props) {
     return (
         <div className="splash container">
             <div className="rooms">
-                {!isLoading && rooms.length > 0 ? (
+                {rooms.length > 0 ? (
                     <div className="roomList">
                         <h2>Rooms</h2>
                         {rooms.map((room) => (
