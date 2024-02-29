@@ -670,9 +670,27 @@ function ChatChannel() {
             },
         })
             .then(response => response.json())
-            .then(data => {
-                console.log("-----------========_______", data);
-                setReplies(data);
+            .then(replyData => {
+                console.log("Fetched messages: ", replyData);
+                const fetchReactionsPromises = replyData.map(message =>
+                    fetch(`/api/message/${message.id}/reaction`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': localStorage.getItem('api_key'),
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(response => response.json())
+                );
+
+                // Wait for all reactions to be fetched
+                Promise.all(fetchReactionsPromises).then(reactionsData => {
+                    const messagesWithReactions = replyData.map((message, index) => ({
+                        ...message,
+                        reactions: reactionsData[index]
+                    }));
+
+                    setReplies(messagesWithReactions);
+                });
             })
             .catch(error => console.error("Failed to fetch replies:", error));
     };
@@ -749,10 +767,12 @@ function ChatChannel() {
         const message_interval = setInterval(() => {
             fetch_messages();
             fetchRepliesCount();
+            if (selectedMessageId)
+                fetchRepliesForMessage(selectedMessageId);
         }, 500);
         return () => clearInterval(message_interval);
 
-    }, [id]);
+    }, [id, selectedMessageId]);
 
     return (
         <div className="room">
@@ -801,28 +821,7 @@ function ChatChannel() {
                                         </div>
 
                                     </div>
-                                    {message.reactions && message.reactions.length > 0 && (
-                                        <div className="reactions">
-                                            {message.reactions.map((reaction, index) => (
-                                                <span key={index} className="reaction"
-                                                      onMouseEnter={(e) => {
-                                                          // Show tooltip
-                                                          e.currentTarget.querySelector('.users').style.display = 'block';
-                                                      }}
-                                                      onMouseLeave={(e) => {
-                                                          // Hide tooltip
-                                                          e.currentTarget.querySelector('.users').style.display = 'none';
-                                                      }}>
-                                                         {reaction.emoji}{reaction.users.split(',').length}&nbsp;
-                                                    <span className="users" style={{display: 'none'}}>
-                                                           {reaction.users}
-                                                         </span>
-                                                    </span>
-                                            ))}
 
-                                        </div>
-
-                                    )}
                                     <div className="message-reactions">
                                         {['😀', '❤️', '👍'].map((emoji) => (
                                             <button key={emoji}
@@ -830,6 +829,26 @@ function ChatChannel() {
                                                 {emoji}
                                             </button>
                                         ))}
+                                        {message.reactions && message.reactions.length > 0 && (
+                                            <div className="reactions">
+                                                {message.reactions.map((reaction, index) => (
+                                                    <span key={index} className="reaction"
+                                                          onMouseEnter={(e) => {
+                                                              // Show tooltip
+                                                              e.currentTarget.querySelector('.users').style.display = 'block';
+                                                          }}
+                                                          onMouseLeave={(e) => {
+                                                              // Hide tooltip
+                                                              e.currentTarget.querySelector('.users').style.display = 'none';
+                                                          }}>
+                                                         {reaction.emoji}{reaction.users.split(',').length}&nbsp;
+                                                        <span className="users" style={{display: 'none'}}>
+                                                           {reaction.users}
+                                                         </span>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
 
 
@@ -844,6 +863,34 @@ function ChatChannel() {
                                     replies.map((reply, index) => (
                                         <div key={index} className="reply">
                                             <div><strong>{reply.name}</strong>: {reply.body}</div>
+                                            <div className="message-reactions">
+                                                {['😀', '❤️', '👍'].map((emoji) => (
+                                                    <button key={emoji}
+                                                            onClick={() => handleAddReaction(reply.id, emoji)}>
+                                                        {emoji}
+                                                    </button>
+                                                ))}
+                                                {reply.reactions && reply.reactions.length > 0 && (
+                                                    <div className="reactions">
+                                                        {reply.reactions.map((reaction, index) => (
+                                                            <span key={index} className="reaction"
+                                                                  onMouseEnter={(e) => {
+                                                                      // Show tooltip
+                                                                      e.currentTarget.querySelector('.users').style.display = 'block';
+                                                                  }}
+                                                                  onMouseLeave={(e) => {
+                                                                      // Hide tooltip
+                                                                      e.currentTarget.querySelector('.users').style.display = 'none';
+                                                                  }}>
+                                                         {reaction.emoji}{reaction.users.split(',').length}&nbsp;
+                                                                <span className="users" style={{display: 'none'}}>
+                                                           {reaction.users}
+                                                         </span>
+                                                    </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     ))
                                 ) : (
