@@ -154,10 +154,10 @@ def new_channel():
 
 @app.route('/api/channel', methods=['GET'])
 def get_all_channel():
-    api_key = request.headers.get('Authorization')
-    user = query_db('select * from users where api_key = ?', [api_key], one=True)
-    if not user:
-        return {}, 403
+    # api_key = request.headers.get('Authorization')
+    # user = query_db('select * from users where api_key = ?', [api_key], one=True)
+    # if not user:
+    #     return {}, 403
     channels = query_db('select * from channels')
     if channels:
         print("GET channel LIST SUCCESSFULLY!!!")

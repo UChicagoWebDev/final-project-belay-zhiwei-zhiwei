@@ -73,18 +73,18 @@ function App() {
     };
 
     const fetchRooms = () => {
-        const apiKey = localStorage.getItem('api_key');
-        console.log("splashScreen apiKey", apiKey);
-        if (!apiKey) {
-            console.error("API key not found.");
-            // setIsLoading(false);
-            return;
-        }
+        // const apiKey = localStorage.getItem('api_key');
+        // console.log("splashScreen apiKey", apiKey);
+        // if (!apiKey) {
+        //     console.error("API key not found.");
+        //     setIsLoading(false);
+        // return;
+        // }
 
         fetch('/api/channel', {
             method: 'GET',
             headers: {
-                'Authorization': apiKey,
+                // 'Authorization': apiKey,
                 'Content-Type': 'application/json',
             },
         })
@@ -250,7 +250,7 @@ function SplashScreen(props) {
                         <h2>Rooms</h2>
                         {rooms.map((room) => (
                             <button key={room.id} onClick={() => navigateToChannel(room.id)}>
-                                {room.name} {unreadCounts[room.id] !== 0 &&
+                                {room.name} {unreadCounts[room.id] !== 0 && props.user &&
                                 <strong>({unreadCounts[room.id]} unread messages)</strong>}
                             </button>
                         ))}
@@ -825,19 +825,25 @@ function ChatChannel(props) {
 
     React.useEffect(() => {
         const apiKey = localStorage.getItem('api_key');
-        props.fetchRooms();
-        props.fetchUnreadMessageCounts(apiKey);
-        fetch_room_detail();
-        fetch_messages();
-        updateLastViewed();
-        const message_interval = setInterval(() => {
+        if (!apiKey) {
+            history.push('/login');
+            // alert("Please login before entering to the channels.")
+        } else {
+            props.fetchRooms();
+            props.fetchUnreadMessageCounts(apiKey);
+            fetch_room_detail();
             fetch_messages();
-            fetchRepliesCount();
-            props.fetchUnreadMessageCounts(apiKey)
-            if (selectedMessageId)
-                fetchRepliesForMessage(selectedMessageId);
-        }, 500);
-        return () => clearInterval(message_interval);
+            updateLastViewed();
+            const message_interval = setInterval(() => {
+                fetch_messages();
+                fetchRepliesCount();
+                props.fetchUnreadMessageCounts(apiKey)
+                if (selectedMessageId)
+                    fetchRepliesForMessage(selectedMessageId);
+            }, 500);
+            return () => clearInterval(message_interval);
+        }
+
 
     }, [id, selectedMessageId]);
 
