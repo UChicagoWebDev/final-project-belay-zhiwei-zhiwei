@@ -98,7 +98,7 @@ function App() {
             });
     }
 
-    const handleUpdateRoomName = (id) => {
+    const handleUpdateRoomName = (id, newRoomName) => {
         fetch(`/api/channel/${id}`, {
             method: 'POST',
             headers: {
@@ -115,6 +115,7 @@ function App() {
     };
 
     const handleEditClick = () => {
+        console.log("Click the edit BUTTON!!!!!!")
         setIsEditing(true);
     };
 
@@ -160,7 +161,7 @@ function App() {
                                      currChannel={currChannel}
                                      setCurrChannel={setCurrChannel}
                                      isEditing={isEditing}
-                                     setIsEditing={setIsEditing}
+                            // setIsEditing={setIsEditing}
                                      newRoomName={newRoomName}
                                      setNewRoomName={setNewRoomName}/>
                     </Route>
@@ -934,8 +935,9 @@ function ChatChannel(props) {
                                     <div className="displayRoomName">
                                         <h3 className="curr_room_name">
                                             Chatting in <strong>{props.currChannel.name}</strong>
-                                            <a onClick={props.handleEditClick}><span
-                                                className="material-symbols-outlined md-18">edit</span></a>
+                                            <a onClick={props.handleEditClick}>
+                                                <span className="material-symbols-outlined md-18">edit</span>
+                                            </a>
                                         </h3>
                                     </div>
                                 ) : (
@@ -943,7 +945,8 @@ function ChatChannel(props) {
                                         <h3>
                                             Chatting in <input value={props.newRoomName}
                                                                onChange={(e) => props.setNewRoomName(e.target.value)}/>
-                                            <button onClick={props.handleUpdateRoomName(id)}>Update</button>
+                                            <button onClick={() => props.handleUpdateRoomName(id, props.newRoomName)}>Update
+                                            </button>
                                         </h3>
                                     </div>
                                 )}
