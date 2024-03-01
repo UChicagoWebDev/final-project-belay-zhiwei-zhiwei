@@ -49,6 +49,29 @@ function App() {
             });
     };
 
+    const handleSignup = () => {
+        fetch('/api/signup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Signup failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("New user data:", data);
+
+                localStorage.setItem('api_key', data.api_key);
+                setUser({id: data.id, username: data.username, apiKey: data.api_key});
+                history.push('/profile');
+            })
+            .catch(error => {
+                console.error('Error during signup:', error);
+            });
+    };
+
     const fetchUnreadMessageCounts = () => {
         const apiKey = localStorage.getItem('api_key');
         if (apiKey) {
@@ -125,6 +148,7 @@ function App() {
                         <SplashScreen fetchUnreadMessageCounts={fetchUnreadMessageCounts}
                                       unreadCounts={unreadCounts}
                                       fetchRooms={fetchRooms}
+                                      handleSignup={handleSignup}
                                       rooms={rooms}
                                       user={user}
                                       setUser={setUser}/>
@@ -149,28 +173,7 @@ function SplashScreen(props) {
         history.push('/login');
     };
 
-    const handleSignup = () => {
-        fetch('/api/signup', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Signup failed');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("New user data:", data);
 
-                localStorage.setItem('api_key', data.api_key);
-                props.setUser({id: data.id, username: data.username, apiKey: data.api_key});
-                history.push('/profile');
-            })
-            .catch(error => {
-                console.error('Error during signup:', error);
-            });
-    };
 
     function fetchUserInfo() {
         const apiKey = localStorage.getItem('api_key');
@@ -269,7 +272,7 @@ function SplashScreen(props) {
                 {props.user ? (
                     <button className="create" onClick={handleCreateRoom}>Create a Room</button>
                 ) : (
-                    <button className="signup" onClick={handleSignup}>Signup</button>
+                    <button className="signup" onClick={props.handleSignup}>Signup</button>
                 )}
             </div>
 
