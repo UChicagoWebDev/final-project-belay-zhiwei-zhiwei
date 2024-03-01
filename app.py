@@ -57,7 +57,9 @@ def new_user():
 @app.route('/login')
 @app.route('/channel')
 @app.route('/channel/<channel_id>')
-def index(channel_id=None):
+@app.route('/channel/<channel_id>/thread/<message_id>')
+
+def index(channel_id=None, message_id=None):
     return app.send_static_file('index.html')
 
 

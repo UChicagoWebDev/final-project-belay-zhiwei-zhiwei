@@ -139,7 +139,7 @@ function App() {
                     </Route>
                     <Route path="*">
                         <div>Page not found</div>
-                        {/*<NotFoundPage/>*/}
+                        <NotFoundPage/>
                     </Route>
                 </Switch>
             </div>
