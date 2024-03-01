@@ -3,11 +3,11 @@ const {
     Switch,
     Route,
     Routes,
+    HashRouter,
     Link,
     useHistory,
     useParams,
 } = ReactRouterDOM;
-
 
 
 function App() {
@@ -118,12 +118,17 @@ function App() {
                     <Route path="/profile">
                         <Profile user={user} setUser={setUser} setRooms={setRooms}/>
                     </Route>
-                    <Route path="/channel/:id">
+                    <Route exact path="/channel/:id/thread/:msg_id">
+                        <Thread/>
+                    </Route>
+
+                    <Route exact path="/channel/:id">
                         <ChatChannel fetchUnreadMessageCounts={fetchUnreadMessageCounts}
                                      unreadCounts={unreadCounts}
                                      fetchRooms={fetchRooms}
                                      rooms={rooms}/>
                     </Route>
+
                     <Route exact path="/">
                         <SplashScreen fetchUnreadMessageCounts={fetchUnreadMessageCounts}
                                       unreadCounts={unreadCounts}
@@ -132,12 +137,9 @@ function App() {
                                       user={user}
                                       setUser={setUser}/>
                     </Route>
-                    <Route path="/channel_thread/:id/thread/:msg_id">
-                        <Thread />
-                    </Route>
                     <Route path="*">
                         <div>Page not found</div>
-                        <NotFoundPage/>
+                        {/*<NotFoundPage/>*/}
                     </Route>
                 </Switch>
             </div>
@@ -833,9 +835,8 @@ function ChatChannel(props) {
 
     const navigateToThread = (channelId, messageId) => {
         console.log("---------------GO to the message thread successfully---------------");
-        history.push(`/channel_thread/${channelId}/thread/${messageId}`);
+        history.push(`/channel/${channelId}/thread/${messageId}`);
     };
-
 
 
     React.useEffect(() => {
@@ -850,6 +851,7 @@ function ChatChannel(props) {
             fetch_messages();
             updateLastViewed();
             const message_interval = setInterval(() => {
+                props.fetchRooms();
                 fetch_messages();
                 fetchRepliesCount();
                 props.fetchUnreadMessageCounts(apiKey)
@@ -1095,16 +1097,73 @@ function ChatChannel(props) {
     }
 }
 
-function Thread() {
-    let {id} = useParams(); // Get the channel ID from the URL
-    let {msg_id} = useParams();
+function Thread(props) {
+    let {id, msg_id} = useParams();
     let history = useHistory();
-    console.log("In the room {"+id+"} message {"+msg_id+"}");
+    const [replies, setReplies] = React.useState([]); // State to hold replies
+    const [newReply, setNewReply] = React.useState('');
+
+    const fetchRepliesForMessage = () => {
+        const apiKey = localStorage.getItem('api_key');
+        fetch(`/api/messages/${msg_id}/replies`, {
+            method: 'GET',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(replyData => {
+                setReplies(replyData);
+            })
+            .catch(error => console.error("Failed to fetch replies:", error));
+    };
+
+
+    const handlePostReply = (event) => {
+        event.preventDefault();
+        const apiKey = localStorage.getItem('api_key');
+        fetch(`/api/messages/${msg_id}/replies`, {
+            method: 'POST',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({body: newReply}),
+        })
+            .then(() => {
+                setNewReply('');
+                fetchRepliesForMessage(); // Refresh the replies to include the new one
+            })
+            .catch(error => console.error('Failed to post reply:', error));
+    };
+
+    React.useEffect(() => {
+        fetchRepliesForMessage();
+    }, [msg_id]);
+
+    console.log("In the room {" + id + "} message {" + msg_id + "}");
 
     return (
         <div>
-            <h1> HAHA In the room {id} message {msg_id}</h1>
+            <h1>In the room {id}, message {msg_id}</h1>
+            <div className="replies">
+                {replies.map((reply, index) => (
+                    <div key={index} className="reply">
+                        <strong>{reply.name}</strong>: {reply.body}
+                    </div>
+                ))}
+            </div>
+            <form onSubmit={handlePostReply}>
+    <textarea
+        value={newReply}
+        onChange={(e) => setNewReply(e.target.value)}
+        placeholder="Write a reply..."
+    />
+                <button type="submit">Post Reply</button>
+            </form>
         </div>
+
 
     );
 }
@@ -1116,7 +1175,9 @@ function NotFoundPage() {
             <h1>404 - Page Not Found</h1>
             <p>Sorry, the page you are looking for does not exist.</p>
             <p>You can always go back to the <a href="/">homepage</a>.</p>
+
         </div>
+
     );
 }
 
