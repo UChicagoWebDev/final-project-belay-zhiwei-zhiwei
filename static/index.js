@@ -7,6 +7,8 @@ const {
     useParams,
 } = ReactRouterDOM;
 
+
+
 function App() {
     const [user, setUser] = React.useState(null);
     const [unreadCounts, setUnreadCounts] = React.useState({});
@@ -128,6 +130,9 @@ function App() {
                                       rooms={rooms}
                                       user={user}
                                       setUser={setUser}/>
+                    </Route>
+                    <Route>
+                        <Thread path="/channel/:id/thread/:msg_id"/>
                     </Route>
                     <Route path="*">
                         <div>Page not found</div>
@@ -825,6 +830,12 @@ function ChatChannel(props) {
         return message.match(regex) || [];
     };
 
+    const navigateToThread = (channelId, messageId) => {
+        history.push(`/channel/${channelId}/thread/${messageId}`);
+    };
+
+
+
     React.useEffect(() => {
         const apiKey = localStorage.getItem('api_key');
         if (!apiKey) {
@@ -1080,6 +1091,17 @@ function ChatChannel(props) {
             </div>
         );
     }
+}
+
+function Thread() {
+    let {id} = useParams(); // Get the channel ID from the URL
+    let {msg_id} = useParams();
+    let history = useHistory();
+
+
+    return (
+        <h1> HAHA </h1>
+    );
 }
 
 function NotFoundPage() {
