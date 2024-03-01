@@ -227,6 +227,7 @@ function SplashScreen(props) {
     };
 
     React.useEffect(() => {
+        document.title = "Belay Main Page";
         props.fetchRooms();
         fetchUserInfo();
         props.fetchUnreadMessageCounts();
@@ -480,6 +481,7 @@ function Profile(props) {
         if (!apiKey) {
             history.push('/login');
         } else {
+            document.title = "Belay Profile"
             fetch('/api/profile', {
                 method: 'GET',
                 headers: {
@@ -827,8 +829,8 @@ function ChatChannel(props) {
         const apiKey = localStorage.getItem('api_key');
         if (!apiKey) {
             history.push('/login');
-            // alert("Please login before entering to the channels.")
         } else {
+            document.title = `Belay Channel #${id}`;
             props.fetchRooms();
             props.fetchUnreadMessageCounts(apiKey);
             fetch_room_detail();
@@ -847,10 +849,13 @@ function ChatChannel(props) {
 
     }, [id, selectedMessageId]);
 
-    return (
+    if (rooms.length < parseInt(id, 10)) {
+        return <NotFoundPage/>;
+    } else {
+        return (
 
-        <div className="splash container">
-            {rooms.length > parseInt(id, 10) ? (
+            <div className="splash container">
+
                 <>
                     <div className="rooms">
                         {rooms.length > 0 ? (
@@ -1071,18 +1076,14 @@ function ChatChannel(props) {
                             </div>
                         </div>
                     </div>
-                </>) : (
-                <div>
-                    <h1>404 - Page Not Found</h1>
-                    <p>Sorry, the page you are looking for does not exist.</p>
-                    <p>You can always go back to the <a href="/">homepage</a>.</p>
-                </div>
-            )}
-        </div>
-    );
+                </>
+            </div>
+        );
+    }
 }
 
 function NotFoundPage() {
+    document.title = "NOT FOUND";
     return (
         <div>
             <h1>404 - Page Not Found</h1>
