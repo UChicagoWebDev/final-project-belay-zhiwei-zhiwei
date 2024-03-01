@@ -49,29 +49,6 @@ function App() {
             });
     };
 
-    const handleSignup = () => {
-        fetch('/api/signup', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Signup failed');
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log("New user data:", data);
-
-                localStorage.setItem('api_key', data.api_key);
-                setUser({id: data.id, username: data.username, apiKey: data.api_key});
-                history.push('/profile');
-            })
-            .catch(error => {
-                console.error('Error during signup:', error);
-            });
-    };
-
     const fetchUnreadMessageCounts = () => {
         const apiKey = localStorage.getItem('api_key');
         if (apiKey) {
@@ -133,7 +110,7 @@ function App() {
             <div>
                 <Switch>
                     <Route path="/login">
-                        <LoginForm handleLogin={handleLogin}/>
+                        <LoginForm user={user} setUser={setUser} handleLogin={handleLogin}/>
                     </Route>
                     <Route path="/profile">
                         <Profile user={user} setUser={setUser} setRooms={setRooms}/>
@@ -148,7 +125,6 @@ function App() {
                         <SplashScreen fetchUnreadMessageCounts={fetchUnreadMessageCounts}
                                       unreadCounts={unreadCounts}
                                       fetchRooms={fetchRooms}
-                                      handleSignup={handleSignup}
                                       rooms={rooms}
                                       user={user}
                                       setUser={setUser}/>
@@ -173,7 +149,28 @@ function SplashScreen(props) {
         history.push('/login');
     };
 
+    const handleSignup = () => {
+        fetch('/api/signup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Signup failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("New user data:", data);
 
+                localStorage.setItem('api_key', data.api_key);
+                props.setUser({id: data.id, username: data.username, apiKey: data.api_key});
+                history.push('/profile');
+            })
+            .catch(error => {
+                console.error('Error during signup:', error);
+            });
+    };
 
     function fetchUserInfo() {
         const apiKey = localStorage.getItem('api_key');
@@ -272,7 +269,7 @@ function SplashScreen(props) {
                 {props.user ? (
                     <button className="create" onClick={handleCreateRoom}>Create a Room</button>
                 ) : (
-                    <button className="signup" onClick={props.handleSignup}>Signup</button>
+                    <button className="signup" onClick={handleSignup}>Signup</button>
                 )}
             </div>
 
@@ -310,6 +307,32 @@ function LoginForm(props) {
             setPassword(value);
         }
     };
+
+    const handleSignup = () => {
+        fetch('/api/signup', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Signup failed');
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log("New user data:", data);
+
+                localStorage.setItem('api_key', data.api_key);
+                props.setUser({id: data.id, username: data.username, apiKey: data.api_key});
+                history.push('/profile');
+            })
+            .catch(error => {
+                console.error('Error during signup:', error);
+            });
+    };
+
+
+
 
     const handleSubmit = (event) => {
         event.preventDefault();
@@ -359,7 +382,7 @@ function LoginForm(props) {
                         <button type="submit">Login</button>
                     </form>
                     <div className="failed">
-                        <button type="button" onClick={props.onSignupClick}>Create a new Account</button>
+                        <button type="button" onClick={handleSignup}>Create a new Account</button>
                     </div>
 
                     {errorMessage && (
