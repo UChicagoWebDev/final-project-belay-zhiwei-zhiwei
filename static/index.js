@@ -49,7 +49,8 @@ function App() {
             });
     };
 
-    const fetchUnreadMessageCounts = (apiKey) => {
+    const fetchUnreadMessageCounts = () => {
+        const apiKey = localStorage.getItem('api_key');
         if (apiKey) {
             fetch('/api/user/unread-messages', {
                 method: 'GET',
@@ -94,6 +95,7 @@ function App() {
                 return response.json();
             })
             .then(data => {
+                console.log("fetch room data", data);
                 setRooms(data);
                 // setIsLoading(false);
             })
@@ -226,8 +228,12 @@ function SplashScreen(props) {
     React.useEffect(() => {
         props.fetchRooms();
         fetchUserInfo();
-        props.fetchUnreadMessageCounts(apiKey);
-        const counts_interval = setInterval(props.fetchUnreadMessageCounts(apiKey), 1000);
+        props.fetchUnreadMessageCounts();
+        const counts_interval = setInterval(() => {
+            props.fetchRooms();
+            props.fetchUnreadMessageCounts();
+            console.log("rooms date ---------" ,props.rooms);
+        }, 1000);
         return () => clearInterval(counts_interval);
     }, []);
 
@@ -783,6 +789,11 @@ function ChatChannel(props) {
         history.push(`/channel/${channelId}`);
     };
 
+    const parseImageUrls = (message) => {
+      const regex = /https?:\/\/\S+\.(jpg|jpeg|png|gif)/gi;
+      return message.match(regex) || [];
+    };
+
     React.useEffect(() => {
         const apiKey = localStorage.getItem('api_key');
         props.fetchRooms();
@@ -858,7 +869,19 @@ function ChatChannel(props) {
                                     <div key={index} className="message-container">
                                         <div className="message">
                                             <div className="author">{message.name} :</div>
-                                            <div className="content">{message.body}</div>
+                                            {/*<div className="content">{message.body}</div>*/}
+                                            <div className="content">
+                                                {message.body}
+                                                {/* Display images after the message content */}
+                                                {parseImageUrls(message.body).map((url, imgIndex) => (
+                                                    <img key={imgIndex} src={url} alt="Message Attachment"
+                                                         style={{
+                                                             maxWidth: '200px',
+                                                             maxHeight: '200px',
+                                                             marginTop: '10px'
+                                                         }}/>
+                                                ))}
+                                            </div>
                                             <div className="message-actions">
                                                 {repliesCount[message.id] > 0 && (
                                                     <button onClick={() => handleShowReplies(message.id)}>
@@ -910,7 +933,20 @@ function ChatChannel(props) {
                                     {replies.length > 0 ? (
                                         replies.map((reply, index) => (
                                             <div key={index} className="reply">
-                                                <div><strong>{reply.name}</strong>: {reply.body}</div>
+                                                <div><strong>{reply.name}</strong>: </div>
+                                                {/*<div>{reply.body}</div>*/}
+                                                <div className="content">
+                                                    {reply.body}
+                                                    {/* Display images after the reply content */}
+                                                    {parseImageUrls(reply.body).map((url, imgIndex) => (
+                                                        <img key={imgIndex} src={url} alt="Message Attachment"
+                                                             style={{
+                                                                 maxWidth: '100px',
+                                                                 maxHeight: '100px',
+                                                                 marginTop: '10px'
+                                                             }}/>
+                                                    ))}
+                                                </div>
                                                 <div className="message-reactions">
                                                     {['😀', '❤️', '👍'].map((emoji) => (
                                                         <button key={emoji}
