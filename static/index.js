@@ -131,6 +131,7 @@ function App() {
                     </Route>
                     <Route path="*">
                         <div>Page not found</div>
+                        <NotFoundPage/>
                     </Route>
                 </Switch>
             </div>
@@ -232,7 +233,7 @@ function SplashScreen(props) {
         const counts_interval = setInterval(() => {
             props.fetchRooms();
             props.fetchUnreadMessageCounts();
-            console.log("rooms data ---------" ,props.rooms);
+            console.log("rooms data ---------", props.rooms);
         }, 1000);
         return () => clearInterval(counts_interval);
     }, []);
@@ -330,8 +331,6 @@ function LoginForm(props) {
                 console.error('Error during signup:', error);
             });
     };
-
-
 
 
     const handleSubmit = (event) => {
@@ -552,6 +551,7 @@ function ChatChannel(props) {
     const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
     const [repliesCount, setRepliesCount] = React.useState({});
     const [selectedMessageId, setSelectedMessageId] = React.useState(null);
+    const [selectedMessage, setSelectedMessage] = React.useState(null);
     const [replies, setReplies] = React.useState([]);
     const [replyInput, setReplyInput] = React.useState({});
 
@@ -783,6 +783,8 @@ function ChatChannel(props) {
 
 
     const handleShowReplies = (messageId) => {
+        const message = messages.find(m => m.id === messageId);
+        setSelectedMessage(message);
         setSelectedMessageId(messageId);
         fetchRepliesForMessage(messageId);
     };
@@ -817,8 +819,8 @@ function ChatChannel(props) {
     };
 
     const parseImageUrls = (message) => {
-      const regex = /https?:\/\/\S+\.(jpg|jpeg|png|gif)/gi;
-      return message.match(regex) || [];
+        const regex = /https?:\/\/\S+\.(jpg|jpeg|png|gif)/gi;
+        return message.match(regex) || [];
     };
 
     React.useEffect(() => {
@@ -840,150 +842,100 @@ function ChatChannel(props) {
     }, [id, selectedMessageId]);
 
     return (
+
         <div className="splash container">
-            <div className="rooms">
-                {rooms.length > 0 ? (
-                    <div className="roomList">
-                        <h2>Rooms</h2>
-                        {rooms.map((room) => (
-                            <button key={room.id} onClick={() => navigateToChannel(room.id)}>
-                                {room.name} {unreadCounts[room.id] !== 0 &&
-                                <strong>({unreadCounts[room.id]} unread messages)</strong>}
-                            </button>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="noRooms">No rooms yet! You get to be first!</div>
-                )}
-            </div>
-
-            <div className="room">
-
-                <div className="header">
-                    <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
-                    <h4>2</h4>
-                    <div className="roomDetail">
-                        {!isEditing && room ? (
-                            <div className="displayRoomName">
-                                <h3 className="curr_room_name">
-                                    Chatting in <strong>{room.name}</strong>
-                                    <a onClick={handleEditClick}><span
-                                        className="material-symbols-outlined md-18">edit</span></a>
-                                </h3>
-                            </div>
-                        ) : (
-                            <div className="editRoomName">
-                                <h3>
-                                    Chatting in <input value={newRoomName}
-                                                       onChange={(e) => setNewRoomName(e.target.value)}/>
-                                    <button onClick={handleUpdateRoomName}>Update</button>
-                                </h3>
-                            </div>
-                        )}
-                        <a className="shar_link">/rooms/{id}</a>
-                    </div>
-                </div>
-
-
-                <div className="clip">
-
-                    <div className="container">
-
-                        <div className="chat">
-
-                            <div className="messages">
-                                {messages.map((message, index) => (
-                                    <div key={index} className="message-container">
-                                        <div className="message">
-                                            <div className="author">{message.name} :</div>
-                                            {/*<div className="content">{message.body}</div>*/}
-                                            <div className="content">
-                                                {message.body}
-                                                {/* Display images after the message content */}
-                                                {parseImageUrls(message.body).map((url, imgIndex) => (
-                                                    <img key={imgIndex} src={url} alt="Message Attachment"
-                                                         style={{
-                                                             maxWidth: '200px',
-                                                             maxHeight: '200px',
-                                                             marginTop: '10px'
-                                                         }}/>
-                                                ))}
-                                            </div>
-                                            <div className="message-actions">
-                                                {repliesCount[message.id] > 0 && (
-                                                    <button onClick={() => handleShowReplies(message.id)}>
-                                                        Replies: {repliesCount[message.id]}
-                                                    </button>
-                                                )}
-                                                <button onClick={() => handleShowReplies(message.id)}>Reply!</button>
-                                            </div>
-
-                                        </div>
-
-                                        <div className="message-reactions">
-                                            {['😀', '❤️', '👍'].map((emoji) => (
-                                                <button key={emoji}
-                                                        onClick={() => handleAddReaction(message.id, emoji)}>
-                                                    {emoji}
-                                                </button>
-                                            ))}
-                                            {message.reactions && message.reactions.length > 0 && (
-                                                <div className="reactions">
-                                                    {message.reactions.map((reaction, index) => (
-                                                        <span key={index} className="reaction"
-                                                              onMouseEnter={(e) => {
-                                                                  // Show tooltip
-                                                                  e.currentTarget.querySelector('.users').style.display = 'block';
-                                                              }}
-                                                              onMouseLeave={(e) => {
-                                                                  // Hide tooltip
-                                                                  e.currentTarget.querySelector('.users').style.display = 'none';
-                                                              }}>
-                                                         {reaction.emoji}{reaction.users.split(',').length}&nbsp;
-                                                            <span className="users" style={{display: 'none'}}>
-                                                           {reaction.users}
-                                                         </span>
-                                                    </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-
-                                    </div>
+            {rooms.length > parseInt(id, 10) ? (
+                <>
+                    <div className="rooms">
+                        {rooms.length > 0 ? (
+                            <div className="roomList">
+                                <h2>Rooms</h2>
+                                {rooms.map((room) => (
+                                    <button key={room.id} onClick={() => navigateToChannel(room.id)}>
+                                        {room.name} {unreadCounts[room.id] !== 0 &&
+                                        <strong>({unreadCounts[room.id]} unread messages)</strong>}
+                                    </button>
                                 ))}
                             </div>
+                        ) : (
+                            <div className="noRooms">No rooms yet! You get to be first!</div>
+                        )}
+                    </div>
 
-                            {selectedMessageId && (
-                                <div className="replies-section">
-                                    <h3>Replies</h3>
-                                    {replies.length > 0 ? (
-                                        replies.map((reply, index) => (
-                                            <div key={index} className="reply">
-                                                <div><strong>{reply.name}</strong>: </div>
-                                                {/*<div>{reply.body}</div>*/}
-                                                <div className="content">
-                                                    {reply.body}
-                                                    {/* Display images after the reply content */}
-                                                    {parseImageUrls(reply.body).map((url, imgIndex) => (
-                                                        <img key={imgIndex} src={url} alt="Message Attachment"
-                                                             style={{
-                                                                 maxWidth: '100px',
-                                                                 maxHeight: '100px',
-                                                                 marginTop: '10px'
-                                                             }}/>
-                                                    ))}
+                    <div className="room">
+
+                        <div className="header">
+                            <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
+                            <h4>2</h4>
+                            <div className="roomDetail">
+                                {!isEditing && room ? (
+                                    <div className="displayRoomName">
+                                        <h3 className="curr_room_name">
+                                            Chatting in <strong>{room.name}</strong>
+                                            <a onClick={handleEditClick}><span
+                                                className="material-symbols-outlined md-18">edit</span></a>
+                                        </h3>
+                                    </div>
+                                ) : (
+                                    <div className="editRoomName">
+                                        <h3>
+                                            Chatting in <input value={newRoomName}
+                                                               onChange={(e) => setNewRoomName(e.target.value)}/>
+                                            <button onClick={handleUpdateRoomName}>Update</button>
+                                        </h3>
+                                    </div>
+                                )}
+                                <a className="shar_link">/rooms/{id}</a>
+                            </div>
+                        </div>
+
+
+                        <div className="clip">
+
+                            <div className="container">
+
+                                <div className="chat">
+
+                                    <div className="messages">
+                                        {messages.map((message, index) => (
+                                            <div key={index} className="message-container">
+                                                <div className="message">
+                                                    <div className="author">{message.name} :</div>
+                                                    {/*<div className="content">{message.body}</div>*/}
+                                                    <div className="content">
+                                                        {message.body}
+                                                        {/* Display images after the message content */}
+                                                        {parseImageUrls(message.body).map((url, imgIndex) => (
+                                                            <img key={imgIndex} src={url} alt="Message Attachment"
+                                                                 style={{
+                                                                     maxWidth: '200px',
+                                                                     maxHeight: '200px',
+                                                                     marginTop: '10px'
+                                                                 }}/>
+                                                        ))}
+                                                    </div>
+                                                    <div className="message-actions">
+                                                        {repliesCount[message.id] > 0 && (
+                                                            <button onClick={() => handleShowReplies(message.id)}>
+                                                                Replies: {repliesCount[message.id]}
+                                                            </button>
+                                                        )}
+                                                        <button onClick={() => handleShowReplies(message.id)}>Reply!
+                                                        </button>
+                                                    </div>
+
                                                 </div>
+
                                                 <div className="message-reactions">
                                                     {['😀', '❤️', '👍'].map((emoji) => (
                                                         <button key={emoji}
-                                                                onClick={() => handleAddReaction(reply.id, emoji)}>
+                                                                onClick={() => handleAddReaction(message.id, emoji)}>
                                                             {emoji}
                                                         </button>
                                                     ))}
-                                                    {reply.reactions && reply.reactions.length > 0 && (
+                                                    {message.reactions && message.reactions.length > 0 && (
                                                         <div className="reactions">
-                                                            {reply.reactions.map((reaction, index) => (
+                                                            {message.reactions.map((reaction, index) => (
                                                                 <span key={index} className="reaction"
                                                                       onMouseEnter={(e) => {
                                                                           // Show tooltip
@@ -1002,46 +954,134 @@ function ChatChannel(props) {
                                                         </div>
                                                     )}
                                                 </div>
+
+
                                             </div>
-                                        ))
-                                    ) : (
-                                        <p>No replies yet.</p>
+                                        ))}
+                                    </div>
+
+                                    {selectedMessageId && (
+                                        <div className="replies-section">
+                                            <h3>Message</h3>
+                                            <div className="message">
+                                                <div className="author">{selectedMessage.name}</div>
+                                                <div className="content">
+                                                    {selectedMessage.body}
+                                                    {/* Display images after the message content */}
+                                                    {parseImageUrls(selectedMessage.body).map((url, imgIndex) => (
+                                                        <img key={imgIndex} src={url} alt="Message Attachment"
+                                                             style={{
+                                                                 maxWidth: '100px',
+                                                                 maxHeight: '100px',
+                                                                 marginTop: '10px'
+                                                             }}/>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <h3>Replies</h3>
+                                            {replies.length > 0 ? (
+                                                replies.map((reply, index) => (
+                                                    <div key={index} className="reply">
+                                                        <div><strong>{reply.name}</strong>:</div>
+                                                        {/*<div>{reply.body}</div>*/}
+                                                        <div className="content">
+                                                            {reply.body}
+                                                            {/* Display images after the reply content */}
+                                                            {parseImageUrls(reply.body).map((url, imgIndex) => (
+                                                                <img key={imgIndex} src={url} alt="Message Attachment"
+                                                                     style={{
+                                                                         maxWidth: '100px',
+                                                                         maxHeight: '100px',
+                                                                         marginTop: '10px'
+                                                                     }}/>
+                                                            ))}
+                                                        </div>
+                                                        <div className="message-reactions">
+                                                            {['😀', '❤️', '👍'].map((emoji) => (
+                                                                <button key={emoji}
+                                                                        onClick={() => handleAddReaction(reply.id, emoji)}>
+                                                                    {emoji}
+                                                                </button>
+                                                            ))}
+                                                            {reply.reactions && reply.reactions.length > 0 && (
+                                                                <div className="reactions">
+                                                                    {reply.reactions.map((reaction, index) => (
+                                                                        <span key={index} className="reaction"
+                                                                              onMouseEnter={(e) => {
+                                                                                  // Show tooltip
+                                                                                  e.currentTarget.querySelector('.users').style.display = 'block';
+                                                                              }}
+                                                                              onMouseLeave={(e) => {
+                                                                                  // Hide tooltip
+                                                                                  e.currentTarget.querySelector('.users').style.display = 'none';
+                                                                              }}>
+                                                         {reaction.emoji}{reaction.users.split(',').length}&nbsp;
+                                                                            <span className="users"
+                                                                                  style={{display: 'none'}}>
+                                                           {reaction.users}
+                                                         </span>
+                                                    </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <p>No replies yet.</p>
+                                            )}
+                                            <div className="comment_box">
+                                                <label htmlFor="comment">What do you have to say?</label>
+                                                <textarea
+                                                    name="comment"
+                                                    value={replyInput[selectedMessageId] || ''}
+                                                    onChange={(e) => setReplyInput({
+                                                        ...replyInput,
+                                                        [selectedMessageId]: e.target.value
+                                                    })}
+                                                ></textarea>
+                                                <button onClick={(e) => handlePostReply(e, selectedMessageId)}
+                                                        className="post_room_messages">Post
+                                                </button>
+                                            </div>
+                                        </div>
+
                                     )}
+                                    {!selectedMessageId && (<div></div>)}
                                     <div className="comment_box">
                                         <label htmlFor="comment">What do you have to say?</label>
-                                        <textarea
-                                            name="comment"
-                                            value={replyInput[selectedMessageId] || ''}
-                                            onChange={(e) => setReplyInput({
-                                                ...replyInput,
-                                                [selectedMessageId]: e.target.value
-                                            })}
-                                        ></textarea>
-                                        <button onClick={(e) => handlePostReply(e, selectedMessageId)}
-                                                className="post_room_messages">Post
-                                        </button>
+                                        <textarea name="comment" value={newMessage}
+                                                  onChange={(e) => setNewMessage(e.target.value)}></textarea>
+                                        <button onClick={handlePostMessage} className="post_room_messages">Post</button>
                                     </div>
                                 </div>
 
-                            )}
-                            {!selectedMessageId && (<div></div>)}
-                            <div className="comment_box">
-                                <label htmlFor="comment">What do you have to say?</label>
-                                <textarea name="comment" value={newMessage}
-                                          onChange={(e) => setNewMessage(e.target.value)}></textarea>
-                                <button onClick={handlePostMessage} className="post_room_messages">Post</button>
+                                {!messages.length && (
+                                    <div className="noMessages">
+                                        <h2>Oops, we can't find that room!</h2>
+                                        <p><a onClick={goToSplash}>Let's go home and try again.</a></p>
+                                    </div>
+                                )}
                             </div>
                         </div>
-
-                        {!messages.length && (
-                            <div className="noMessages">
-                                <h2>Oops, we can't find that room!</h2>
-                                <p><a onClick={goToSplash}>Let's go home and try again.</a></p>
-                            </div>
-                        )}
                     </div>
+                </>) : (
+                <div>
+                    <h1>404 - Page Not Found</h1>
+                    <p>Sorry, the page you are looking for does not exist.</p>
+                    <p>You can always go back to the <a href="/">homepage</a>.</p>
                 </div>
-            </div>
+            )}
+        </div>
+    );
+}
+
+function NotFoundPage() {
+    return (
+        <div>
+            <h1>404 - Page Not Found</h1>
+            <p>Sorry, the page you are looking for does not exist.</p>
+            <p>You can always go back to the <a href="/">homepage</a>.</p>
         </div>
     );
 }
