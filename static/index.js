@@ -2,6 +2,7 @@ const {
     BrowserRouter,
     Switch,
     Route,
+    Routes,
     Link,
     useHistory,
     useParams,
@@ -131,8 +132,8 @@ function App() {
                                       user={user}
                                       setUser={setUser}/>
                     </Route>
-                    <Route>
-                        <Thread path="/channel/:id/thread/:msg_id"/>
+                    <Route path="/channel_thread/:id/thread/:msg_id">
+                        <Thread />
                     </Route>
                     <Route path="*">
                         <div>Page not found</div>
@@ -831,7 +832,8 @@ function ChatChannel(props) {
     };
 
     const navigateToThread = (channelId, messageId) => {
-        history.push(`/channel/${channelId}/thread/${messageId}`);
+        console.log("---------------GO to the message thread successfully---------------");
+        history.push(`/channel_thread/${channelId}/thread/${messageId}`);
     };
 
 
@@ -942,7 +944,7 @@ function ChatChannel(props) {
                                                                 Replies: {repliesCount[message.id]}
                                                             </button>
                                                         )}
-                                                        <button onClick={() => handleShowReplies(message.id)}>Reply!
+                                                        <button onClick={() => navigateToThread(id, message.id)}>Reply!
                                                         </button>
                                                     </div>
 
@@ -1097,10 +1099,13 @@ function Thread() {
     let {id} = useParams(); // Get the channel ID from the URL
     let {msg_id} = useParams();
     let history = useHistory();
-
+    console.log("In the room {"+id+"} message {"+msg_id+"}");
 
     return (
-        <h1> HAHA </h1>
+        <div>
+            <h1> HAHA In the room {id} message {msg_id}</h1>
+        </div>
+
     );
 }
 
