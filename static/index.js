@@ -2,9 +2,6 @@ const {
     BrowserRouter,
     Switch,
     Route,
-    Routes,
-    HashRouter,
-    Link,
     useHistory,
     useParams,
 } = ReactRouterDOM;
@@ -134,6 +131,7 @@ function App() {
                                       unreadCounts={unreadCounts}
                                       fetchRooms={fetchRooms}
                                       rooms={rooms}
+                                      setRooms={setRooms}
                                       user={user}
                                       setUser={setUser}/>
                     </Route>
@@ -183,7 +181,6 @@ function SplashScreen(props) {
 
     function fetchUserInfo() {
         const apiKey = localStorage.getItem('api_key');
-        console.log("apikey in App useeffect", apiKey);
         if (apiKey) {
             fetch('/api/profile', {
                 method: 'GET',
@@ -226,7 +223,7 @@ function SplashScreen(props) {
             })
             .then(newRoom => {
                 history.push(`/channel/${newRoom.id}`);
-                setRooms(prevRooms => [...prevRooms, newRoom]);
+                props.setRooms(prevRooms => [...prevRooms, newRoom]);
 
             })
             .catch(error => {
@@ -272,8 +269,8 @@ function SplashScreen(props) {
 
             <div className="hero">
                 <div className="logo">
-                    <img id="tv" src="/static/tv.jpeg" alt="TV"/>
-                    <img id="popcorn" src="/static/popcorn.png" alt="Popcorn"/>
+                    <img id="tv" src={"/static/tv.jpeg"} alt="TV"/>
+                    <img id="popcorn" src={"/static/popcorn.png"} alt="Popcorn"/>
                 </div>
                 <h1>Slack</h1>
                 {props.user ? (
