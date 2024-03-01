@@ -11,8 +11,9 @@ function App() {
     const [user, setUser] = React.useState(null);
     const [unreadCounts, setUnreadCounts] = React.useState({});
     const [rooms, setRooms] = React.useState([]);
-    localStorage.setItem('Zhiwei_(Jackson)_Cao_belay_auth_key_CNETID', 'zhiweic');
-    localStorage.setItem('CNETID', 'zhiweic');
+    const [currChannel, setCurrChannel] = React.useState({name: ''}); // State to hold room details
+    const [isEditing, setIsEditing] = React.useState(false); // State to toggle edit mode
+    const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
 
 
     const handleLogin = (username, password) => {
@@ -39,7 +40,7 @@ function App() {
 
                 console.log("user", user);
 
-                localStorage.setItem('api_key', data.api_key);
+                localStorage.setItem('zhiweic_api-key', data.api_key);
 
                 return true;
             })
@@ -50,7 +51,7 @@ function App() {
     };
 
     const fetchUnreadMessageCounts = () => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         if (apiKey) {
             fetch('/api/user/unread-messages', {
                 method: 'GET',
@@ -73,14 +74,6 @@ function App() {
     };
 
     const fetchRooms = () => {
-        // const apiKey = localStorage.getItem('api_key');
-        // console.log("splashScreen apiKey", apiKey);
-        // if (!apiKey) {
-        //     console.error("API key not found.");
-        //     setIsLoading(false);
-        // return;
-        // }
-
         fetch('/api/channel', {
             method: 'GET',
             headers: {
@@ -105,6 +98,42 @@ function App() {
             });
     }
 
+    const handleUpdateRoomName = (id) => {
+        fetch(`/api/channel/${id}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': localStorage.getItem('zhiweic_api-key'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({name: newRoomName}),
+        })
+            .then(() => {
+                setCurrChannel({name: newRoomName});
+                setIsEditing(false);
+            })
+            .catch(error => console.error("Failed to update room name:", error));
+    };
+
+    const handleEditClick = () => {
+        setIsEditing(true);
+    };
+
+    const fetch_room_detail = (id) => {
+        fetch(`/api/channel/${id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': localStorage.getItem('zhiweic_api-key'),
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                setCurrChannel({name: data.name});
+                setNewRoomName(data.name);
+            })
+            .catch(error => console.error("Failed to fetch room details:", error));
+    }
+
     return (
         <BrowserRouter>
             <div>
@@ -123,7 +152,17 @@ function App() {
                         <ChatChannel fetchUnreadMessageCounts={fetchUnreadMessageCounts}
                                      unreadCounts={unreadCounts}
                                      fetchRooms={fetchRooms}
-                                     rooms={rooms}/>
+                                     handleUpdateRoomName={handleUpdateRoomName}
+                                     handleEditClick={handleEditClick}
+                                     fetch_room_detail={fetch_room_detail}
+                                     rooms={rooms}
+                                     setRooms={setRooms}
+                                     currChannel={currChannel}
+                                     setCurrChannel={setCurrChannel}
+                                     isEditing={isEditing}
+                                     setIsEditing={setIsEditing}
+                                     newRoomName={newRoomName}
+                                     setNewRoomName={setNewRoomName}/>
                     </Route>
 
                     <Route exact path="/">
@@ -149,7 +188,7 @@ function SplashScreen(props) {
     const {rooms} = props;
     const {unreadCounts} = props;
     // const [isLoading, setIsLoading] = React.useState(true);
-    const apiKey = localStorage.getItem('api_key');
+    const apiKey = localStorage.getItem('zhiweic_api-key');
     const history = useHistory();
     console.log("props", props);
     const handleLoginClick = () => {
@@ -170,7 +209,7 @@ function SplashScreen(props) {
             .then(data => {
                 console.log("New user data:", data);
 
-                localStorage.setItem('api_key', data.api_key);
+                localStorage.setItem('zhiweic_api-key', data.api_key);
                 props.setUser({id: data.id, username: data.username, apiKey: data.api_key});
                 history.push('/profile');
             })
@@ -180,7 +219,7 @@ function SplashScreen(props) {
     };
 
     function fetchUserInfo() {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         if (apiKey) {
             fetch('/api/profile', {
                 method: 'GET',
@@ -329,7 +368,7 @@ function LoginForm(props) {
             .then(data => {
                 console.log("New user data:", data);
 
-                localStorage.setItem('api_key', data.api_key);
+                localStorage.setItem('zhiweic_api-key', data.api_key);
                 props.setUser({id: data.id, username: data.username, apiKey: data.api_key});
                 history.push('/profile');
             })
@@ -416,13 +455,13 @@ function Profile(props) {
 
     const handleLogout = () => {
         props.setUser(null);
-        localStorage.removeItem('api_key');
+        localStorage.removeItem('zhiweic_api-key');
         history.push('/');
         // props.setRooms([]);  // uncomment this line, when user logout, they cannot get any channels on main page.
     };
 
     const handleUpdateUsername = () => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch('/api/profile', {
             method: 'POST',
             headers: {
@@ -453,7 +492,7 @@ function Profile(props) {
             setError("Passwords don't match");
             return;
         }
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch('/api/profile', {
             method: 'POST',
             headers: {
@@ -482,7 +521,7 @@ function Profile(props) {
     };
 
     React.useEffect(() => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         if (!apiKey) {
             history.push('/login');
         } else {
@@ -551,9 +590,9 @@ function ChatChannel(props) {
     const {unreadCounts} = props;
     let {id} = useParams(); // Get the channel ID from the URL
     let history = useHistory();
-    const [room, setRoom] = React.useState({name: ''}); // State to hold room details
-    const [isEditing, setIsEditing] = React.useState(false); // State to toggle edit mode
-    const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
+    // const [currChannel, setCurrChannel] = React.useState({name: ''}); // State to hold room details
+    // const [isEditing, setIsEditing] = React.useState(false); // State to toggle edit mode
+    // const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
     const [messages, setMessages] = React.useState([]); // State to hold messages
     const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
     const [repliesCount, setRepliesCount] = React.useState({});
@@ -566,47 +605,47 @@ function ChatChannel(props) {
         history.push('/');
     };
 
-    const handleUpdateRoomName = () => {
-        fetch(`/api/channel/${id}`, {
-            method: 'POST',
-            headers: {
-                'Authorization': localStorage.getItem('api_key'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({name: newRoomName}),
-        })
-            .then(() => {
-                setRoom({name: newRoomName});
-                setIsEditing(false);
-            })
-            .catch(error => console.error("Failed to update room name:", error));
-    };
-
-    const handleEditClick = () => {
-        setIsEditing(true);
-    };
-
-    const fetch_room_detail = () => {
-        fetch(`/api/channel/${id}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': localStorage.getItem('api_key'),
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                setRoom({name: data.name});
-                setNewRoomName(data.name);
-            })
-            .catch(error => console.error("Failed to fetch room details:", error));
-    }
+    // const handleUpdateRoomName = () => {
+    //     fetch(`/api/channel/${id}`, {
+    //         method: 'POST',
+    //         headers: {
+    //             'Authorization': localStorage.getItem('zhiweic_api-key'),
+    //             'Content-Type': 'application/json'
+    //         },
+    //         body: JSON.stringify({name: newRoomName}),
+    //     })
+    //         .then(() => {
+    //             setCurrChannel({name: newRoomName});
+    //             setIsEditing(false);
+    //         })
+    //         .catch(error => console.error("Failed to update room name:", error));
+    // };
+    //
+    // const handleEditClick = () => {
+    //     setIsEditing(true);
+    // };
+    //
+    // const fetch_room_detail = () => {
+    //     fetch(`/api/channel/${id}`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Authorization': localStorage.getItem('zhiweic_api-key'),
+    //             'Content-Type': 'application/json'
+    //         }
+    //     })
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             setCurrChannel({name: data.name});
+    //             setNewRoomName(data.name);
+    //         })
+    //         .catch(error => console.error("Failed to fetch room details:", error));
+    // }
 
     const fetch_messages = () => {
         fetch(`/api/channel/${id}/messages`, {
             method: 'GET',
             headers: {
-                'Authorization': localStorage.getItem('api_key'),
+                'Authorization': localStorage.getItem('zhiweic_api-key'),
                 'Content-Type': 'application/json'
             }
         })
@@ -617,7 +656,7 @@ function ChatChannel(props) {
                     fetch(`/api/message/${message.id}/reaction`, {
                         method: 'GET',
                         headers: {
-                            'Authorization': localStorage.getItem('api_key'),
+                            'Authorization': localStorage.getItem('zhiweic_api-key'),
                             'Content-Type': 'application/json'
                         }
                     }).then(response => response.json())
@@ -648,7 +687,7 @@ function ChatChannel(props) {
         fetch(`/api/channel/${id}/messages`, {
             method: 'POST',
             headers: {
-                'Authorization': localStorage.getItem('api_key'),
+                'Authorization': localStorage.getItem('zhiweic_api-key'),
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({body: newMessage}),
@@ -663,7 +702,7 @@ function ChatChannel(props) {
 
 
     const updateLastViewed = () => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch(`/api/channel/${id}/messages`, {
             method: 'GET',
             headers: {
@@ -699,7 +738,7 @@ function ChatChannel(props) {
 
 
     const fetchRepliesCount = () => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch(`/api/channel/${id}/message-replies`, {
             method: 'GET',
             headers: {
@@ -721,7 +760,7 @@ function ChatChannel(props) {
 
 
     const fetchRepliesForMessage = (messageId) => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch(`/api/messages/${messageId}/replies`, {
             method: 'GET',
             headers: {
@@ -736,7 +775,7 @@ function ChatChannel(props) {
                     fetch(`/api/message/${message.id}/reaction`, {
                         method: 'GET',
                         headers: {
-                            'Authorization': localStorage.getItem('api_key'),
+                            'Authorization': localStorage.getItem('zhiweic_api-key'),
                             'Content-Type': 'application/json'
                         }
                     }).then(response => response.json())
@@ -758,7 +797,7 @@ function ChatChannel(props) {
 
     const handlePostReply = (event, messageId) => {
         event.preventDefault(); // Prevent the default form submission behavior
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         const replyBody = replyInput[messageId];
 
         if (!replyBody) {
@@ -798,7 +837,7 @@ function ChatChannel(props) {
 
 
     const handleAddReaction = (messageId, emoji) => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch(`/api/message/${messageId}/reaction`, {
             method: 'POST',
             headers: {
@@ -837,14 +876,14 @@ function ChatChannel(props) {
 
 
     React.useEffect(() => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         if (!apiKey) {
             history.push('/login');
         } else {
             document.title = `Belay Channel #${id}`;
             props.fetchRooms();
             props.fetchUnreadMessageCounts(apiKey);
-            fetch_room_detail();
+            props.fetch_room_detail(id);
             fetch_messages();
             updateLastViewed();
             const message_interval = setInterval(() => {
@@ -891,20 +930,20 @@ function ChatChannel(props) {
                             <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
                             <h4>2</h4>
                             <div className="roomDetail">
-                                {!isEditing && room ? (
+                                {!props.isEditing && props.currChannel ? (
                                     <div className="displayRoomName">
                                         <h3 className="curr_room_name">
-                                            Chatting in <strong>{room.name}</strong>
-                                            <a onClick={handleEditClick}><span
+                                            Chatting in <strong>{props.currChannel.name}</strong>
+                                            <a onClick={props.handleEditClick}><span
                                                 className="material-symbols-outlined md-18">edit</span></a>
                                         </h3>
                                     </div>
                                 ) : (
                                     <div className="editRoomName">
                                         <h3>
-                                            Chatting in <input value={newRoomName}
-                                                               onChange={(e) => setNewRoomName(e.target.value)}/>
-                                            <button onClick={handleUpdateRoomName}>Update</button>
+                                            Chatting in <input value={props.newRoomName}
+                                                               onChange={(e) => props.setNewRoomName(e.target.value)}/>
+                                            <button onClick={props.handleUpdateRoomName(id)}>Update</button>
                                         </h3>
                                     </div>
                                 )}
@@ -1101,7 +1140,7 @@ function Thread(props) {
     const [newReply, setNewReply] = React.useState('');
 
     const fetchRepliesForMessage = () => {
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch(`/api/messages/${msg_id}/replies`, {
             method: 'GET',
             headers: {
@@ -1119,7 +1158,7 @@ function Thread(props) {
 
     const handlePostReply = (event) => {
         event.preventDefault();
-        const apiKey = localStorage.getItem('api_key');
+        const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch(`/api/messages/${msg_id}/replies`, {
             method: 'POST',
             headers: {
