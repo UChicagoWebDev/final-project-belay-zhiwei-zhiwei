@@ -113,7 +113,7 @@ function App() {
                         <LoginForm handleLogin={handleLogin}/>
                     </Route>
                     <Route path="/profile">
-                        <Profile user={user} setUser={setUser}/>
+                        <Profile user={user} setUser={setUser} setRooms={setRooms}/>
                     </Route>
                     <Route path="/channel/:id">
                         <ChatChannel fetchUnreadMessageCounts={fetchUnreadMessageCounts}
@@ -232,7 +232,7 @@ function SplashScreen(props) {
         const counts_interval = setInterval(() => {
             props.fetchRooms();
             props.fetchUnreadMessageCounts();
-            console.log("rooms date ---------" ,props.rooms);
+            console.log("rooms data ---------" ,props.rooms);
         }, 1000);
         return () => clearInterval(counts_interval);
     }, []);
@@ -375,18 +375,19 @@ function LoginForm(props) {
 
 // Profile component changes
 
-function Profile({user, setUser}) {
+function Profile(props) {
     const history = useHistory();
 
-    const [username, setUsername] = React.useState(user ? user.username : '');
+    const [username, setUsername] = React.useState(props.user ? props.user.username : '');
     const [password, setPassword] = React.useState('');
     const [repeatPassword, setRepeatPassword] = React.useState('');
     const [error, setError] = React.useState('');
 
     const handleLogout = () => {
-        setUser(null);
+        props.setUser(null);
         localStorage.removeItem('api_key');
-        history.push("/login");
+        history.push('/');
+        // props.setRooms([]);  // uncomment this line, when user logout, they cannot get any channels on main page.
     };
 
     const handleUpdateUsername = () => {
@@ -407,7 +408,7 @@ function Profile({user, setUser}) {
             })
             .then(updatedUser => {
                 console.log('Username updated to', updatedUser.username);
-                setUser(updatedUser);
+                props.setUser(updatedUser);
                 setUsername(updatedUser.username);
             })
             .catch(error => {
