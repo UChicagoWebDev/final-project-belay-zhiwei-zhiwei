@@ -606,42 +606,6 @@ function ChatChannel(props) {
         history.push('/');
     };
 
-    // const handleUpdateRoomName = () => {
-    //     fetch(`/api/channel/${id}`, {
-    //         method: 'POST',
-    //         headers: {
-    //             'Authorization': localStorage.getItem('zhiweic_api-key'),
-    //             'Content-Type': 'application/json'
-    //         },
-    //         body: JSON.stringify({name: newRoomName}),
-    //     })
-    //         .then(() => {
-    //             setCurrChannel({name: newRoomName});
-    //             setIsEditing(false);
-    //         })
-    //         .catch(error => console.error("Failed to update room name:", error));
-    // };
-    //
-    // const handleEditClick = () => {
-    //     setIsEditing(true);
-    // };
-    //
-    // const fetch_room_detail = () => {
-    //     fetch(`/api/channel/${id}`, {
-    //         method: 'GET',
-    //         headers: {
-    //             'Authorization': localStorage.getItem('zhiweic_api-key'),
-    //             'Content-Type': 'application/json'
-    //         }
-    //     })
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             setCurrChannel({name: data.name});
-    //             setNewRoomName(data.name);
-    //         })
-    //         .catch(error => console.error("Failed to fetch room details:", error));
-    // }
-
     const fetch_messages = () => {
         fetch(`/api/channel/${id}/messages`, {
             method: 'GET',
@@ -914,7 +878,8 @@ function ChatChannel(props) {
                             <div className="roomList">
                                 <h2>Rooms</h2>
                                 {rooms.map((room) => (
-                                    <button key={room.id} onClick={() => navigateToChannel(room.id)}>
+                                    <button key={room.id} onClick={() => navigateToChannel(room.id)}
+                                            style={{backgroundColor: room.id === parseInt(id, 10) ? 'orange' : 'transparent'}}>
                                         {room.name} {unreadCounts[room.id] !== 0 &&
                                         <strong>({unreadCounts[room.id]} unread messages)</strong>}
                                     </button>
