@@ -19,7 +19,8 @@ function App() {
     const [repliesCount, setRepliesCount] = React.useState({});
     const [replies, setReplies] = React.useState([]);
     const [replyInput, setReplyInput] = React.useState({});
-
+    const [selectedMessageId, setSelectedMessageId] = React.useState(null);
+    const [selectedMessage, setSelectedMessage] = React.useState(null);
     const handleLogin = (username, password) => {
         return fetch('/api/login', {
             method: 'POST',
@@ -323,6 +324,13 @@ function App() {
             .catch(error => console.error('Failed to post reply:', error));
     };
 
+    const handleShowReplies = (messageId) => {
+        const message = messages.find(m => m.id === messageId);
+        setSelectedMessage(message);
+        setSelectedMessageId(messageId);
+        fetchRepliesForMessage(messageId);
+    };
+
 
     return (
         <BrowserRouter>
@@ -347,6 +355,7 @@ function App() {
                                 fetchRepliesCount={fetchRepliesCount}
                                 fetchRepliesForMessage={fetchRepliesForMessage}
                                 handlePostReply={handlePostReply}
+                                handleShowReplies={handleShowReplies}
 
 
                                 rooms={rooms}
@@ -367,6 +376,10 @@ function App() {
                                 setReplies={setReplies}
                                 replyInput={replyInput}
                                 setReplyInput={setReplyInput}
+                                selectedMessageId={selectedMessageId}
+                                setSelectedMessageId={setSelectedMessageId}
+                                selectedMessage={selectedMessage}
+                                setSelectedMessage={setSelectedMessage}
                         />
                     </Route>
 
@@ -383,6 +396,7 @@ function App() {
                                      fetchRepliesCount={fetchRepliesCount}
                                      fetchRepliesForMessage={fetchRepliesForMessage}
                                      handlePostReply={handlePostReply}
+                                     handleShowReplies={handleShowReplies}
 
                                      rooms={rooms}
                                      setRooms={setRooms}
@@ -402,6 +416,10 @@ function App() {
                                      setReplies={setReplies}
                                      replyInput={replyInput}
                                      setReplyInput={setReplyInput}
+                                     selectedMessageId={selectedMessageId}
+                                     setSelectedMessageId={setSelectedMessageId}
+                                     selectedMessage={selectedMessage}
+                                     setSelectedMessage={setSelectedMessage}
                         />
                     </Route>
 
@@ -838,22 +856,12 @@ function ChatChannel(props) {
     // const [repliesCount, setRepliesCount] = React.useState({});
     // const [replies, setReplies] = React.useState([]);
     // const [replyInput, setReplyInput] = React.useState({});
-    const [selectedMessageId, setSelectedMessageId] = React.useState(null);
-    const [selectedMessage, setSelectedMessage] = React.useState(null);
-
+    // const [selectedMessageId, setSelectedMessageId] = React.useState(null);
+    // const [selectedMessage, setSelectedMessage] = React.useState(null);
 
     const goToSplash = () => {
         history.push('/');
     };
-
-
-    const handleShowReplies = (messageId) => {
-        const message = props.messages.find(m => m.id === messageId);
-        setSelectedMessage(message);
-        setSelectedMessageId(messageId);
-        props.fetchRepliesForMessage(messageId);
-    };
-
 
     const handleAddReaction = (messageId, emoji) => {
         const apiKey = localStorage.getItem('zhiweic_api-key');
@@ -913,14 +921,14 @@ function ChatChannel(props) {
                 props.fetch_messages(id);
                 props.fetchRepliesCount(id);
                 props.fetchUnreadMessageCounts(apiKey)
-                if (selectedMessageId)
-                    props.fetchRepliesForMessage(selectedMessageId);
+                if (props.selectedMessageId)
+                    props.fetchRepliesForMessage(props.selectedMessageId);
             }, 500);
             return () => clearInterval(message_interval);
         }
 
 
-    }, [id, selectedMessageId]);
+    }, [id, props.selectedMessageId]);
 
     if (rooms.length < parseInt(id, 10)) {
         return <NotFoundPage/>;
@@ -1004,7 +1012,7 @@ function ChatChannel(props) {
                                                     </div>
                                                     <div className="message-actions">
                                                         {props.repliesCount[message.id] > 0 && (
-                                                            <button onClick={() => handleShowReplies(message.id)}>
+                                                            <button onClick={() => props.handleShowReplies(message.id)}>
                                                                 Replies: {props.repliesCount[message.id]}
                                                             </button>
                                                         )}
@@ -1048,15 +1056,15 @@ function ChatChannel(props) {
                                         ))}
                                     </div>
 
-                                    {selectedMessageId && (
+                                    {props.selectedMessageId && (
                                         <div className="replies-section">
                                             <h3>Message</h3>
                                             <div className="message">
-                                                <div className="author">{selectedMessage.name}</div>
+                                                <div className="author">{props.selectedMessage.name}</div>
                                                 <div className="content">
-                                                    {selectedMessage.body}
+                                                    {props.selectedMessage.body}
                                                     {/* Display images after the message content */}
-                                                    {parseImageUrls(selectedMessage.body).map((url, imgIndex) => (
+                                                    {parseImageUrls(props.selectedMessage.body).map((url, imgIndex) => (
                                                         <img key={imgIndex} src={url} alt="Message Attachment"
                                                              style={{
                                                                  maxWidth: '100px',
@@ -1122,20 +1130,20 @@ function ChatChannel(props) {
                                                 <label htmlFor="comment">What do you have to say?</label>
                                                 <textarea
                                                     name="comment"
-                                                    value={props.replyInput[selectedMessageId] || ''}
+                                                    value={props.replyInput[props.selectedMessageId] || ''}
                                                     onChange={(e) => props.setReplyInput({
                                                         ...props.replyInput,
-                                                        [selectedMessageId]: e.target.value
+                                                        [props.selectedMessageId]: e.target.value
                                                     })}
                                                 ></textarea>
-                                                <button onClick={(e) => props.handlePostReply(e, selectedMessageId)}
+                                                <button onClick={(e) => props.handlePostReply(e, props.selectedMessageId)}
                                                         className="post_room_messages">Post
                                                 </button>
                                             </div>
                                         </div>
 
                                     )}
-                                    {!selectedMessageId && (<div></div>)}
+                                    {!props.selectedMessageId && (<div></div>)}
                                     <div className="comment_box">
                                         <label htmlFor="comment">What do you have to say?</label>
                                         <textarea name="comment" value={props.newMessage}
