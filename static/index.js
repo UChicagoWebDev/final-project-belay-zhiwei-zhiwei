@@ -15,6 +15,7 @@ function App() {
     const [isEditing, setIsEditing] = React.useState(false); // State to toggle edit mode
     const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
     const [messages, setMessages] = React.useState([]); // State to hold messages
+    const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
 
     const handleLogin = (username, password) => {
         return fetch('/api/login', {
@@ -168,6 +169,67 @@ function App() {
             })
     }
 
+    const handlePostMessage = (event, id) => {
+        event.preventDefault(); // Prevent form submission from reloading the page
+
+        const trimmedMessage = newMessage.trim();
+
+        if (!trimmedMessage) {
+            alert('Message cannot be empty'); // Alert the user
+            return; // Exit the function early
+        }
+
+        fetch(`/api/channel/${id}/messages`, {
+            method: 'POST',
+            headers: {
+                'Authorization': localStorage.getItem('zhiweic_api-key'),
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({body: newMessage}),
+        })
+            .then(() => {
+                setMessages([...messages, {body: newMessage}]);
+                setNewMessage(''); // Clear input field
+                updateLastViewed(id);
+            })
+            .catch(error => console.error("Failed to post message:", error));
+    };
+
+    const updateLastViewed = (id) => {
+        const apiKey = localStorage.getItem('zhiweic_api-key');
+        fetch(`/api/channel/${id}/messages`, {
+            method: 'GET',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                setMessages(data);
+                if (data.length > 0) {
+                    const lastMessageId = data[data.length - 1].id;
+                    fetch(`/api/channel/${id}/view`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': apiKey,
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({last_message_id_seen: lastMessageId}),
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Failed to update last viewed message');
+                            }
+                            return response.json();
+                        })
+                        .then(() => console.log('Last viewed message updated successfully'))
+                        .catch(error => console.error('Failed to update last viewed message:', error));
+                }
+            })
+            .catch(error => console.error("Failed to fetch messages:", error));
+    };
+
     return (
         <BrowserRouter>
             <div>
@@ -186,6 +248,8 @@ function App() {
                                 handleEditClick={handleEditClick}
                                 fetch_room_detail={fetch_room_detail}
                                 fetch_messages={fetch_messages}
+                                handlePostMessage={handlePostMessage}
+                                updateLastViewed={updateLastViewed}
 
                                 rooms={rooms}
                                 setRooms={setRooms}
@@ -197,6 +261,8 @@ function App() {
                                 setNewRoomName={setNewRoomName}
                                 messages={messages}
                                 setMessages={setMessages}
+                                newMessage={newMessage}
+                                setNewMessage={setNewMessage}
                         />
                     </Route>
 
@@ -208,6 +274,8 @@ function App() {
                                      handleEditClick={handleEditClick}
                                      fetch_room_detail={fetch_room_detail}
                                      fetch_messages={fetch_messages}
+                                     handlePostMessage={handlePostMessage}
+                                     updateLastViewed={updateLastViewed}
 
                                      rooms={rooms}
                                      setRooms={setRooms}
@@ -217,8 +285,11 @@ function App() {
                                      setIsEditing={setIsEditing}
                                      newRoomName={newRoomName}
                                      setNewRoomName={setNewRoomName}
-                        messages={messages}
-                        setMessages={setMessages}/>
+                                     messages={messages}
+                                     setMessages={setMessages}
+                                     newMessage={newMessage}
+                                     setNewMessage={setNewMessage}
+                        />
                     </Route>
 
                     <Route exact path="/">
@@ -650,7 +721,7 @@ function ChatChannel(props) {
     // const [isEditing, setIsEditing] = React.useState(false); // State to toggle edit mode
     // const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
     // const [messages, setMessages] = React.useState([]); // State to hold messages
-    const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
+    // const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
     const [repliesCount, setRepliesCount] = React.useState({});
     const [selectedMessageId, setSelectedMessageId] = React.useState(null);
     const [selectedMessage, setSelectedMessage] = React.useState(null);
@@ -661,69 +732,6 @@ function ChatChannel(props) {
         history.push('/');
     };
 
-
-
-    const handlePostMessage = (event) => {
-        event.preventDefault(); // Prevent form submission from reloading the page
-
-        const trimmedMessage = newMessage.trim();
-
-        if (!trimmedMessage) {
-            alert('Message cannot be empty'); // Alert the user
-            return; // Exit the function early
-        }
-
-        fetch(`/api/channel/${id}/messages`, {
-            method: 'POST',
-            headers: {
-                'Authorization': localStorage.getItem('zhiweic_api-key'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({body: newMessage}),
-        })
-            .then(() => {
-                props.setMessages([...props.messages, {body: newMessage}]);
-                setNewMessage(''); // Clear input field
-                updateLastViewed();
-            })
-            .catch(error => console.error("Failed to post message:", error));
-    };
-
-
-    const updateLastViewed = () => {
-        const apiKey = localStorage.getItem('zhiweic_api-key');
-        fetch(`/api/channel/${id}/messages`, {
-            method: 'GET',
-            headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                props.setMessages(data);
-                if (data.length > 0) {
-                    const lastMessageId = data[data.length - 1].id;
-                    fetch(`/api/channel/${id}/view`, {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': apiKey,
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({last_message_id_seen: lastMessageId}),
-                    })
-                        .then(response => {
-                            if (!response.ok) {
-                                throw new Error('Failed to update last viewed message');
-                            }
-                            return response.json();
-                        })
-                        .then(() => console.log('Last viewed message updated successfully'))
-                        .catch(error => console.error('Failed to update last viewed message:', error));
-                }
-            })
-            .catch(error => console.error("Failed to fetch messages:", error));
-    };
 
 
     const fetchRepliesCount = () => {
@@ -874,7 +882,7 @@ function ChatChannel(props) {
             props.fetchUnreadMessageCounts(apiKey);
             props.fetch_room_detail(id);
             props.fetch_messages(id);
-            updateLastViewed();
+            props.updateLastViewed(id);
             const message_interval = setInterval(() => {
                 props.fetchRooms();
                 props.fetch_messages(id);
@@ -1105,9 +1113,9 @@ function ChatChannel(props) {
                                     {!selectedMessageId && (<div></div>)}
                                     <div className="comment_box">
                                         <label htmlFor="comment">What do you have to say?</label>
-                                        <textarea name="comment" value={newMessage}
-                                                  onChange={(e) => setNewMessage(e.target.value)}></textarea>
-                                        <button onClick={handlePostMessage} className="post_room_messages">Post</button>
+                                        <textarea name="comment" value={props.newMessage}
+                                                  onChange={(e) => props.setNewMessage(e.target.value)}></textarea>
+                                        <button onClick={(event)=>props.handlePostMessage(event, id)} className="post_room_messages">Post</button>
                                     </div>
                                 </div>
 
