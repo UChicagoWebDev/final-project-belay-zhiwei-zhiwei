@@ -18,6 +18,8 @@ function App() {
     const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
     const [repliesCount, setRepliesCount] = React.useState({});
     const [replies, setReplies] = React.useState([]);
+    const [replyInput, setReplyInput] = React.useState({});
+
     const handleLogin = (username, password) => {
         return fetch('/api/login', {
             method: 'POST',
@@ -286,6 +288,42 @@ function App() {
             })
             .catch(error => console.error("Failed to fetch replies:", error));
     };
+
+    const handlePostReply = (event, messageId) => {
+        event.preventDefault(); // Prevent the default form submission behavior
+        const apiKey = localStorage.getItem('zhiweic_api-key');
+        const replyBody = replyInput[messageId];
+
+        console.log("reply body is ------  ", replyBody);
+
+        if (!replyBody) {
+            alert('Reply cannot be empty');
+            return;
+        }
+
+        fetch(`/api/messages/${messageId}/replies`, {
+            method: 'POST',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({body: replyBody}),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to post reply');
+                }
+                return response.json();
+            })
+            .then(() => {
+                console.log('Reply posted successfully');
+                setReplyInput(prev => ({...prev, [messageId]: ''}));
+                fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
+            })
+            .catch(error => console.error('Failed to post reply:', error));
+    };
+
+
     return (
         <BrowserRouter>
             <div>
@@ -308,6 +346,8 @@ function App() {
                                 updateLastViewed={updateLastViewed}
                                 fetchRepliesCount={fetchRepliesCount}
                                 fetchRepliesForMessage={fetchRepliesForMessage}
+                                handlePostReply={handlePostReply}
+
 
                                 rooms={rooms}
                                 setRooms={setRooms}
@@ -325,6 +365,8 @@ function App() {
                                 setRepliesCount={setRepliesCount}
                                 replies={replies}
                                 setReplies={setReplies}
+                                replyInput={replyInput}
+                                setReplyInput={setReplyInput}
                         />
                     </Route>
 
@@ -340,6 +382,7 @@ function App() {
                                      updateLastViewed={updateLastViewed}
                                      fetchRepliesCount={fetchRepliesCount}
                                      fetchRepliesForMessage={fetchRepliesForMessage}
+                                     handlePostReply={handlePostReply}
 
                                      rooms={rooms}
                                      setRooms={setRooms}
@@ -357,6 +400,8 @@ function App() {
                                      setRepliesCount={setRepliesCount}
                                      replies={replies}
                                      setReplies={setReplies}
+                                     replyInput={replyInput}
+                                     setReplyInput={setReplyInput}
                         />
                     </Route>
 
@@ -792,45 +837,13 @@ function ChatChannel(props) {
     // const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
     // const [repliesCount, setRepliesCount] = React.useState({});
     // const [replies, setReplies] = React.useState([]);
+    // const [replyInput, setReplyInput] = React.useState({});
     const [selectedMessageId, setSelectedMessageId] = React.useState(null);
     const [selectedMessage, setSelectedMessage] = React.useState(null);
-    const [replyInput, setReplyInput] = React.useState({});
+
 
     const goToSplash = () => {
         history.push('/');
-    };
-
-
-    const handlePostReply = (event, messageId) => {
-        event.preventDefault(); // Prevent the default form submission behavior
-        const apiKey = localStorage.getItem('zhiweic_api-key');
-        const replyBody = replyInput[messageId];
-
-        if (!replyBody) {
-            alert('Reply cannot be empty');
-            return;
-        }
-
-        fetch(`/api/messages/${messageId}/replies`, {
-            method: 'POST',
-            headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({body: replyBody}),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to post reply');
-                }
-                return response.json();
-            })
-            .then(() => {
-                console.log('Reply posted successfully');
-                setReplyInput(prev => ({...prev, [messageId]: ''}));
-                props.fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
-            })
-            .catch(error => console.error('Failed to post reply:', error));
     };
 
 
@@ -1109,13 +1122,13 @@ function ChatChannel(props) {
                                                 <label htmlFor="comment">What do you have to say?</label>
                                                 <textarea
                                                     name="comment"
-                                                    value={replyInput[selectedMessageId] || ''}
-                                                    onChange={(e) => setReplyInput({
-                                                        ...replyInput,
+                                                    value={props.replyInput[selectedMessageId] || ''}
+                                                    onChange={(e) => props.setReplyInput({
+                                                        ...props.replyInput,
                                                         [selectedMessageId]: e.target.value
                                                     })}
                                                 ></textarea>
-                                                <button onClick={(e) => handlePostReply(e, selectedMessageId)}
+                                                <button onClick={(e) => props.handlePostReply(e, selectedMessageId)}
                                                         className="post_room_messages">Post
                                                 </button>
                                             </div>
