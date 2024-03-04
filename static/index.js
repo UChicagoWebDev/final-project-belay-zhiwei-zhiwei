@@ -14,7 +14,7 @@ function App() {
     const [currChannel, setCurrChannel] = React.useState({name: ''}); // State to hold room details
     const [isEditing, setIsEditing] = React.useState(false); // State to toggle edit mode
     const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
-
+    const [messages, setMessages] = React.useState([]); // State to hold messages
 
     const handleLogin = (username, password) => {
         return fetch('/api/login', {
@@ -135,6 +135,39 @@ function App() {
             .catch(error => console.error("Failed to fetch room details:", error));
     }
 
+    const fetch_messages = (id) => {
+        fetch(`/api/channel/${id}/messages`, {
+            method: 'GET',
+            headers: {
+                'Authorization': localStorage.getItem('zhiweic_api-key'),
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(messagesData => {
+                console.log("Fetched messages: ", messagesData);
+                const fetchReactionsPromises = messagesData.map(message =>
+                    fetch(`/api/message/${message.id}/reaction`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': localStorage.getItem('zhiweic_api-key'),
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(response => response.json())
+                );
+
+                // Wait for all reactions to be fetched
+                Promise.all(fetchReactionsPromises).then(reactionsData => {
+                    const messagesWithReactions = messagesData.map((message, index) => ({
+                        ...message,
+                        reactions: reactionsData[index]
+                    }));
+
+                    setMessages(messagesWithReactions);
+                });
+            })
+    }
+
     return (
         <BrowserRouter>
             <div>
@@ -152,6 +185,8 @@ function App() {
                                 handleUpdateRoomName={handleUpdateRoomName}
                                 handleEditClick={handleEditClick}
                                 fetch_room_detail={fetch_room_detail}
+                                fetch_messages={fetch_messages}
+
                                 rooms={rooms}
                                 setRooms={setRooms}
                                 currChannel={currChannel}
@@ -159,7 +194,10 @@ function App() {
                                 isEditing={isEditing}
                                 setIsEditing={setIsEditing}
                                 newRoomName={newRoomName}
-                                setNewRoomName={setNewRoomName}/>
+                                setNewRoomName={setNewRoomName}
+                                messages={messages}
+                                setMessages={setMessages}
+                        />
                     </Route>
 
                     <Route exact path="/channel/:id">
@@ -169,6 +207,8 @@ function App() {
                                      handleUpdateRoomName={handleUpdateRoomName}
                                      handleEditClick={handleEditClick}
                                      fetch_room_detail={fetch_room_detail}
+                                     fetch_messages={fetch_messages}
+
                                      rooms={rooms}
                                      setRooms={setRooms}
                                      currChannel={currChannel}
@@ -176,7 +216,9 @@ function App() {
                                      isEditing={isEditing}
                                      setIsEditing={setIsEditing}
                                      newRoomName={newRoomName}
-                                     setNewRoomName={setNewRoomName}/>
+                                     setNewRoomName={setNewRoomName}
+                        messages={messages}
+                        setMessages={setMessages}/>
                     </Route>
 
                     <Route exact path="/">
@@ -607,7 +649,7 @@ function ChatChannel(props) {
     // const [currChannel, setCurrChannel] = React.useState({name: ''}); // State to hold room details
     // const [isEditing, setIsEditing] = React.useState(false); // State to toggle edit mode
     // const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
-    const [messages, setMessages] = React.useState([]); // State to hold messages
+    // const [messages, setMessages] = React.useState([]); // State to hold messages
     const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
     const [repliesCount, setRepliesCount] = React.useState({});
     const [selectedMessageId, setSelectedMessageId] = React.useState(null);
@@ -619,38 +661,7 @@ function ChatChannel(props) {
         history.push('/');
     };
 
-    const fetch_messages = () => {
-        fetch(`/api/channel/${id}/messages`, {
-            method: 'GET',
-            headers: {
-                'Authorization': localStorage.getItem('zhiweic_api-key'),
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(response => response.json())
-            .then(messagesData => {
-                console.log("Fetched messages: ", messagesData);
-                const fetchReactionsPromises = messagesData.map(message =>
-                    fetch(`/api/message/${message.id}/reaction`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': localStorage.getItem('zhiweic_api-key'),
-                            'Content-Type': 'application/json'
-                        }
-                    }).then(response => response.json())
-                );
 
-                // Wait for all reactions to be fetched
-                Promise.all(fetchReactionsPromises).then(reactionsData => {
-                    const messagesWithReactions = messagesData.map((message, index) => ({
-                        ...message,
-                        reactions: reactionsData[index]
-                    }));
-
-                    setMessages(messagesWithReactions);
-                });
-            })
-    }
 
     const handlePostMessage = (event) => {
         event.preventDefault(); // Prevent form submission from reloading the page
@@ -671,7 +682,7 @@ function ChatChannel(props) {
             body: JSON.stringify({body: newMessage}),
         })
             .then(() => {
-                setMessages([...messages, {body: newMessage}]);
+                props.setMessages([...props.messages, {body: newMessage}]);
                 setNewMessage(''); // Clear input field
                 updateLastViewed();
             })
@@ -690,7 +701,7 @@ function ChatChannel(props) {
         })
             .then(response => response.json())
             .then(data => {
-                setMessages(data);
+                props.setMessages(data);
                 if (data.length > 0) {
                     const lastMessageId = data[data.length - 1].id;
                     fetch(`/api/channel/${id}/view`, {
@@ -807,7 +818,7 @@ function ChatChannel(props) {
 
 
     const handleShowReplies = (messageId) => {
-        const message = messages.find(m => m.id === messageId);
+        const message = props.messages.find(m => m.id === messageId);
         setSelectedMessage(message);
         setSelectedMessageId(messageId);
         fetchRepliesForMessage(messageId);
@@ -862,11 +873,11 @@ function ChatChannel(props) {
             props.fetchRooms();
             props.fetchUnreadMessageCounts(apiKey);
             props.fetch_room_detail(id);
-            fetch_messages();
+            props.fetch_messages(id);
             updateLastViewed();
             const message_interval = setInterval(() => {
                 props.fetchRooms();
-                fetch_messages();
+                props.fetch_messages(id);
                 fetchRepliesCount();
                 props.fetchUnreadMessageCounts(apiKey)
                 if (selectedMessageId)
@@ -941,7 +952,7 @@ function ChatChannel(props) {
                                 <div className="chat">
 
                                     <div className="messages">
-                                        {messages.map((message, index) => (
+                                        {props.messages.map((message, index) => (
                                             <div key={index} className="message-container">
                                                 <div className="message">
                                                     <div className="author">{message.name} :</div>
@@ -1100,7 +1111,7 @@ function ChatChannel(props) {
                                     </div>
                                 </div>
 
-                                {!messages.length && (
+                                {!props.messages.length && (
                                     <div className="noMessages">
                                         <h2>Oops, we can't find that room!</h2>
                                         <p><a onClick={goToSplash}>Let's go home and try again.</a></p>
