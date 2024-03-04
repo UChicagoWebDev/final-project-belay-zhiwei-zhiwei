@@ -17,6 +17,7 @@ function App() {
     const [messages, setMessages] = React.useState([]); // State to hold messages
     const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
     const [repliesCount, setRepliesCount] = React.useState({});
+    const [replies, setReplies] = React.useState([]);
     const handleLogin = (username, password) => {
         return fetch('/api/login', {
             method: 'POST',
@@ -251,6 +252,40 @@ function App() {
             .catch(error => console.log("Failed to fetch replies count: There is no massages at this Channel aright now"));
     };
 
+    const fetchRepliesForMessage = (messageId) => {
+        const apiKey = localStorage.getItem('zhiweic_api-key');
+        fetch(`/api/messages/${messageId}/replies`, {
+            method: 'GET',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(replyData => {
+                console.log("Fetched messages: ", replyData);
+                const fetchReactionsPromises = replyData.map(message =>
+                    fetch(`/api/message/${message.id}/reaction`, {
+                        method: 'GET',
+                        headers: {
+                            'Authorization': localStorage.getItem('zhiweic_api-key'),
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(response => response.json())
+                );
+
+                // Wait for all reactions to be fetched
+                Promise.all(fetchReactionsPromises).then(reactionsData => {
+                    const messagesWithReactions = replyData.map((message, index) => ({
+                        ...message,
+                        reactions: reactionsData[index]
+                    }));
+
+                    setReplies(messagesWithReactions);
+                });
+            })
+            .catch(error => console.error("Failed to fetch replies:", error));
+    };
     return (
         <BrowserRouter>
             <div>
@@ -272,6 +307,7 @@ function App() {
                                 handlePostMessage={handlePostMessage}
                                 updateLastViewed={updateLastViewed}
                                 fetchRepliesCount={fetchRepliesCount}
+                                fetchRepliesForMessage={fetchRepliesForMessage}
 
                                 rooms={rooms}
                                 setRooms={setRooms}
@@ -287,6 +323,8 @@ function App() {
                                 setNewMessage={setNewMessage}
                                 repliesCount={repliesCount}
                                 setRepliesCount={setRepliesCount}
+                                replies={replies}
+                                setReplies={setReplies}
                         />
                     </Route>
 
@@ -301,6 +339,7 @@ function App() {
                                      handlePostMessage={handlePostMessage}
                                      updateLastViewed={updateLastViewed}
                                      fetchRepliesCount={fetchRepliesCount}
+                                     fetchRepliesForMessage={fetchRepliesForMessage}
 
                                      rooms={rooms}
                                      setRooms={setRooms}
@@ -316,6 +355,8 @@ function App() {
                                      setNewMessage={setNewMessage}
                                      repliesCount={repliesCount}
                                      setRepliesCount={setRepliesCount}
+                                     replies={replies}
+                                     setReplies={setReplies}
                         />
                     </Route>
 
@@ -750,49 +791,13 @@ function ChatChannel(props) {
     // const [messages, setMessages] = React.useState([]); // State to hold messages
     // const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
     // const [repliesCount, setRepliesCount] = React.useState({});
+    // const [replies, setReplies] = React.useState([]);
     const [selectedMessageId, setSelectedMessageId] = React.useState(null);
     const [selectedMessage, setSelectedMessage] = React.useState(null);
-    const [replies, setReplies] = React.useState([]);
     const [replyInput, setReplyInput] = React.useState({});
 
     const goToSplash = () => {
         history.push('/');
-    };
-
-
-    const fetchRepliesForMessage = (messageId) => {
-        const apiKey = localStorage.getItem('zhiweic_api-key');
-        fetch(`/api/messages/${messageId}/replies`, {
-            method: 'GET',
-            headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then(replyData => {
-                console.log("Fetched messages: ", replyData);
-                const fetchReactionsPromises = replyData.map(message =>
-                    fetch(`/api/message/${message.id}/reaction`, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': localStorage.getItem('zhiweic_api-key'),
-                            'Content-Type': 'application/json'
-                        }
-                    }).then(response => response.json())
-                );
-
-                // Wait for all reactions to be fetched
-                Promise.all(fetchReactionsPromises).then(reactionsData => {
-                    const messagesWithReactions = replyData.map((message, index) => ({
-                        ...message,
-                        reactions: reactionsData[index]
-                    }));
-
-                    setReplies(messagesWithReactions);
-                });
-            })
-            .catch(error => console.error("Failed to fetch replies:", error));
     };
 
 
@@ -823,7 +828,7 @@ function ChatChannel(props) {
             .then(() => {
                 console.log('Reply posted successfully');
                 setReplyInput(prev => ({...prev, [messageId]: ''}));
-                fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
+                props.fetchRepliesForMessage(messageId); // Refresh the replies to include the new one
             })
             .catch(error => console.error('Failed to post reply:', error));
     };
@@ -833,7 +838,7 @@ function ChatChannel(props) {
         const message = props.messages.find(m => m.id === messageId);
         setSelectedMessage(message);
         setSelectedMessageId(messageId);
-        fetchRepliesForMessage(messageId);
+        props.fetchRepliesForMessage(messageId);
     };
 
 
@@ -866,9 +871,12 @@ function ChatChannel(props) {
     };
 
     const parseImageUrls = (message) => {
+        // Check if message is null or undefined
+        if (!message) return [];
         const regex = /https?:\/\/\S+\.(jpg|jpeg|png|gif)/gi;
         return message.match(regex) || [];
     };
+
 
     const navigateToThread = (channelId, messageId) => {
         console.log("---------------GO to the message thread successfully---------------");
@@ -893,7 +901,7 @@ function ChatChannel(props) {
                 props.fetchRepliesCount(id);
                 props.fetchUnreadMessageCounts(apiKey)
                 if (selectedMessageId)
-                    fetchRepliesForMessage(selectedMessageId);
+                    props.fetchRepliesForMessage(selectedMessageId);
             }, 500);
             return () => clearInterval(message_interval);
         }
@@ -1046,8 +1054,8 @@ function ChatChannel(props) {
                                                 </div>
                                             </div>
                                             <h3>Replies</h3>
-                                            {replies.length > 0 ? (
-                                                replies.map((reply, index) => (
+                                            {props.replies.length > 0 ? (
+                                                props.replies.map((reply, index) => (
                                                     <div key={index} className="reply">
                                                         <div><strong>{reply.name}</strong>:</div>
                                                         {/*<div>{reply.body}</div>*/}
