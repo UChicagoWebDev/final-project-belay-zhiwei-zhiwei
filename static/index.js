@@ -330,6 +330,36 @@ function App() {
         setSelectedMessageId(messageId);
         fetchRepliesForMessage(messageId);
     };
+    const handleAddReaction = (messageId, emoji) => {
+        const apiKey = localStorage.getItem('zhiweic_api-key');
+        fetch(`/api/message/${messageId}/reaction`, {
+            method: 'POST',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({emoji}),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to add reaction');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.message === "Reaction already exists") {
+                    alert("You have already added this emoji :)");
+                }
+            })
+            .catch(error => console.error('Error adding reaction:', error));
+    };
+
+    const parseImageUrls = (message) => {
+        // Check if message is null or undefined
+        if (!message) return [];
+        const regex = /https?:\/\/\S+\.(jpg|jpeg|png|gif)/gi;
+        return message.match(regex) || [];
+    };
 
 
     return (
@@ -356,6 +386,8 @@ function App() {
                                 fetchRepliesForMessage={fetchRepliesForMessage}
                                 handlePostReply={handlePostReply}
                                 handleShowReplies={handleShowReplies}
+                                handleAddReaction={handleAddReaction}
+                                parseImageUrls={parseImageUrls}
 
 
                                 rooms={rooms}
@@ -397,6 +429,8 @@ function App() {
                                      fetchRepliesForMessage={fetchRepliesForMessage}
                                      handlePostReply={handlePostReply}
                                      handleShowReplies={handleShowReplies}
+                                     handleAddReaction={handleAddReaction}
+                                     parseImageUrls={parseImageUrls}
 
                                      rooms={rooms}
                                      setRooms={setRooms}
@@ -848,55 +882,15 @@ function ChatChannel(props) {
     const {unreadCounts} = props;
     let {id} = useParams(); // Get the channel ID from the URL
     let history = useHistory();
-    // const [currChannel, setCurrChannel] = React.useState({name: ''}); // State to hold room details
-    // const [isEditing, setIsEditing] = React.useState(false); // State to toggle edit mode
-    // const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
-    // const [messages, setMessages] = React.useState([]); // State to hold messages
-    // const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
-    // const [repliesCount, setRepliesCount] = React.useState({});
-    // const [replies, setReplies] = React.useState([]);
-    // const [replyInput, setReplyInput] = React.useState({});
-    // const [selectedMessageId, setSelectedMessageId] = React.useState(null);
-    // const [selectedMessage, setSelectedMessage] = React.useState(null);
 
     const goToSplash = () => {
         history.push('/');
-    };
-
-    const handleAddReaction = (messageId, emoji) => {
-        const apiKey = localStorage.getItem('zhiweic_api-key');
-        fetch(`/api/message/${messageId}/reaction`, {
-            method: 'POST',
-            headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({emoji}),
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Failed to add reaction');
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.message === "Reaction already exists") {
-                    alert("You have already added this emoji :)");
-                }
-            })
-            .catch(error => console.error('Error adding reaction:', error));
     };
 
     const navigateToChannel = (channelId) => {
         history.push(`/channel/${channelId}`);
     };
 
-    const parseImageUrls = (message) => {
-        // Check if message is null or undefined
-        if (!message) return [];
-        const regex = /https?:\/\/\S+\.(jpg|jpeg|png|gif)/gi;
-        return message.match(regex) || [];
-    };
 
 
     const navigateToThread = (channelId, messageId) => {
@@ -1001,7 +995,7 @@ function ChatChannel(props) {
                                                     <div className="content">
                                                         {message.body}
                                                         {/* Display images after the message content */}
-                                                        {parseImageUrls(message.body).map((url, imgIndex) => (
+                                                        {props.parseImageUrls(message.body).map((url, imgIndex) => (
                                                             <img key={imgIndex} src={url} alt="Message Attachment"
                                                                  style={{
                                                                      maxWidth: '200px',
@@ -1025,7 +1019,7 @@ function ChatChannel(props) {
                                                 <div className="message-reactions">
                                                     {['😀', '❤️', '👍'].map((emoji) => (
                                                         <button key={emoji}
-                                                                onClick={() => handleAddReaction(message.id, emoji)}>
+                                                                onClick={() => props.handleAddReaction(message.id, emoji)}>
                                                             {emoji}
                                                         </button>
                                                     ))}
@@ -1064,7 +1058,7 @@ function ChatChannel(props) {
                                                 <div className="content">
                                                     {props.selectedMessage.body}
                                                     {/* Display images after the message content */}
-                                                    {parseImageUrls(props.selectedMessage.body).map((url, imgIndex) => (
+                                                    {props.parseImageUrls(props.selectedMessage.body).map((url, imgIndex) => (
                                                         <img key={imgIndex} src={url} alt="Message Attachment"
                                                              style={{
                                                                  maxWidth: '100px',
@@ -1083,7 +1077,7 @@ function ChatChannel(props) {
                                                         <div className="content">
                                                             {reply.body}
                                                             {/* Display images after the reply content */}
-                                                            {parseImageUrls(reply.body).map((url, imgIndex) => (
+                                                            {props.parseImageUrls(reply.body).map((url, imgIndex) => (
                                                                 <img key={imgIndex} src={url} alt="Message Attachment"
                                                                      style={{
                                                                          maxWidth: '100px',
@@ -1095,7 +1089,7 @@ function ChatChannel(props) {
                                                         <div className="message-reactions">
                                                             {['😀', '❤️', '👍'].map((emoji) => (
                                                                 <button key={emoji}
-                                                                        onClick={() => handleAddReaction(reply.id, emoji)}>
+                                                                        onClick={() => props.handleAddReaction(reply.id, emoji)}>
                                                                     {emoji}
                                                                 </button>
                                                             ))}
