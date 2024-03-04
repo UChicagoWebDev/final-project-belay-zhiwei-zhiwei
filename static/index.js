@@ -146,7 +146,20 @@ function App() {
                         <Profile user={user} setUser={setUser} setRooms={setRooms}/>
                     </Route>
                     <Route exact path="/channel/:id/thread/:msg_id">
-                        <Thread/>
+                        <Thread fetchUnreadMessageCounts={fetchUnreadMessageCounts}
+                                unreadCounts={unreadCounts}
+                                fetchRooms={fetchRooms}
+                                handleUpdateRoomName={handleUpdateRoomName}
+                                handleEditClick={handleEditClick}
+                                fetch_room_detail={fetch_room_detail}
+                                rooms={rooms}
+                                setRooms={setRooms}
+                                currChannel={currChannel}
+                                setCurrChannel={setCurrChannel}
+                                isEditing={isEditing}
+                                setIsEditing={setIsEditing}
+                                newRoomName={newRoomName}
+                                setNewRoomName={setNewRoomName}/>
                     </Route>
 
                     <Route exact path="/channel/:id">
@@ -161,7 +174,7 @@ function App() {
                                      currChannel={currChannel}
                                      setCurrChannel={setCurrChannel}
                                      isEditing={isEditing}
-                            // setIsEditing={setIsEditing}
+                                     setIsEditing={setIsEditing}
                                      newRoomName={newRoomName}
                                      setNewRoomName={setNewRoomName}/>
                     </Route>
@@ -910,7 +923,8 @@ function ChatChannel(props) {
                                         <h3>
                                             Chatting in <input value={props.newRoomName}
                                                                onChange={(e) => props.setNewRoomName(e.target.value)}/>
-                                            <button onClick={() => props.handleUpdateRoomName(id, props.newRoomName)}>Update
+                                            <button
+                                                onClick={() => props.handleUpdateRoomName(id, props.newRoomName)}>Update
                                             </button>
                                         </h3>
                                     </div>
@@ -1102,6 +1116,8 @@ function ChatChannel(props) {
 }
 
 function Thread(props) {
+    const {rooms} = props;
+    const {unreadCounts} = props;
     let {id, msg_id} = useParams();
     let history = useHistory();
     const [replies, setReplies] = React.useState([]); // State to hold replies
@@ -1148,25 +1164,48 @@ function Thread(props) {
 
     console.log("In the room {" + id + "} message {" + msg_id + "}");
 
+    const navigateToChannel = (channelId) => {
+        history.push(`/channel/${channelId}`);
+    };
+
     return (
-        <div>
-            <h1>In the room {id}, message {msg_id}</h1>
-            <div className="replies">
-                {replies.map((reply, index) => (
-                    <div key={index} className="reply">
-                        <strong>{reply.name}</strong>: {reply.body}
+
+        <>
+            <div className="rooms">
+                {rooms.length > 0 ? (
+                    <div className="roomList">
+                        <h2>Rooms</h2>
+                        {rooms.map((room) => (
+                            <button key={room.id} onClick={() => navigateToChannel(room.id)}
+                                    style={{backgroundColor: room.id === parseInt(id, 10) ? 'orange' : 'transparent'}}>
+                                {room.name} {unreadCounts[room.id] !== 0 &&
+                                <strong>({unreadCounts[room.id]} unread messages)</strong>}
+                            </button>
+                        ))}
                     </div>
-                ))}
+                ) : (
+                    <div className="noRooms">No rooms yet! You get to be first!</div>
+                )}
             </div>
-            <form onSubmit={handlePostReply}>
-    <textarea
-        value={newReply}
-        onChange={(e) => setNewReply(e.target.value)}
-        placeholder="Write a reply..."
-    />
-                <button type="submit">Post Reply</button>
-            </form>
-        </div>
+            <div>
+                <h1>In the room {id}, message {msg_id}</h1>
+                <div className="replies">
+                    {replies.map((reply, index) => (
+                        <div key={index} className="reply">
+                            <strong>{reply.name}</strong>: {reply.body}
+                        </div>
+                    ))}
+                </div>
+                <form onSubmit={handlePostReply}>
+                <textarea
+                    value={newReply}
+                    onChange={(e) => setNewReply(e.target.value)}
+                    placeholder="Write a reply..."
+                />
+                    <button type="submit">Post Reply</button>
+                </form>
+            </div>
+        </>
 
 
     );
