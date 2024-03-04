@@ -782,9 +782,10 @@ function Profile(props) {
     const handleUpdatePassword = () => {
         if (password !== repeatPassword) {
             setError("Passwords don't match");
-            return;
         }
-        const apiKey = localStorage.getItem('zhiweic_api-key');
+        else{
+            setError(null);
+            const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch('/api/profile', {
             method: 'POST',
             headers: {
@@ -798,6 +799,7 @@ function Profile(props) {
                     throw new Error('Failed to update password');
                 }
                 console.log('Password updated successfully');
+                alert('Password updated successfully')
                 setPassword('');
                 setRepeatPassword('');
             })
@@ -805,6 +807,8 @@ function Profile(props) {
                 console.error('Error updating password:', error);
                 setError('Failed to update password');
             });
+        }
+
     };
 
 
@@ -890,8 +894,6 @@ function ChatChannel(props) {
     const navigateToChannel = (channelId) => {
         history.push(`/channel/${channelId}`);
     };
-
-
 
     const navigateToThread = (channelId, messageId) => {
         console.log("---------------GO to the message thread successfully---------------");
