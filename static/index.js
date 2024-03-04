@@ -16,7 +16,7 @@ function App() {
     const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
     const [messages, setMessages] = React.useState([]); // State to hold messages
     const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
-
+    const [repliesCount, setRepliesCount] = React.useState({});
     const handleLogin = (username, password) => {
         return fetch('/api/login', {
             method: 'POST',
@@ -230,6 +230,27 @@ function App() {
             .catch(error => console.error("Failed to fetch messages:", error));
     };
 
+    const fetchRepliesCount = (id) => {
+        const apiKey = localStorage.getItem('zhiweic_api-key');
+        fetch(`/api/channel/${id}/message-replies`, {
+            method: 'GET',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json',
+            },
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log("123123123", data)
+                const repliesMap = data.reduce((acc, item) => {
+                    acc[item.message_id] = item.reply_count;
+                    return acc;
+                }, {});
+                setRepliesCount(repliesMap);
+            })
+            .catch(error => console.log("Failed to fetch replies count: There is no massages at this Channel aright now"));
+    };
+
     return (
         <BrowserRouter>
             <div>
@@ -250,6 +271,7 @@ function App() {
                                 fetch_messages={fetch_messages}
                                 handlePostMessage={handlePostMessage}
                                 updateLastViewed={updateLastViewed}
+                                fetchRepliesCount={fetchRepliesCount}
 
                                 rooms={rooms}
                                 setRooms={setRooms}
@@ -263,6 +285,8 @@ function App() {
                                 setMessages={setMessages}
                                 newMessage={newMessage}
                                 setNewMessage={setNewMessage}
+                                repliesCount={repliesCount}
+                                setRepliesCount={setRepliesCount}
                         />
                     </Route>
 
@@ -276,6 +300,7 @@ function App() {
                                      fetch_messages={fetch_messages}
                                      handlePostMessage={handlePostMessage}
                                      updateLastViewed={updateLastViewed}
+                                     fetchRepliesCount={fetchRepliesCount}
 
                                      rooms={rooms}
                                      setRooms={setRooms}
@@ -289,6 +314,8 @@ function App() {
                                      setMessages={setMessages}
                                      newMessage={newMessage}
                                      setNewMessage={setNewMessage}
+                                     repliesCount={repliesCount}
+                                     setRepliesCount={setRepliesCount}
                         />
                     </Route>
 
@@ -722,7 +749,7 @@ function ChatChannel(props) {
     // const [newRoomName, setNewRoomName] = React.useState(''); // State for the new room name input
     // const [messages, setMessages] = React.useState([]); // State to hold messages
     // const [newMessage, setNewMessage] = React.useState(''); // State for the new message input
-    const [repliesCount, setRepliesCount] = React.useState({});
+    // const [repliesCount, setRepliesCount] = React.useState({});
     const [selectedMessageId, setSelectedMessageId] = React.useState(null);
     const [selectedMessage, setSelectedMessage] = React.useState(null);
     const [replies, setReplies] = React.useState([]);
@@ -730,29 +757,6 @@ function ChatChannel(props) {
 
     const goToSplash = () => {
         history.push('/');
-    };
-
-
-
-    const fetchRepliesCount = () => {
-        const apiKey = localStorage.getItem('zhiweic_api-key');
-        fetch(`/api/channel/${id}/message-replies`, {
-            method: 'GET',
-            headers: {
-                'Authorization': apiKey,
-                'Content-Type': 'application/json',
-            },
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log("123123123", data)
-                const repliesMap = data.reduce((acc, item) => {
-                    acc[item.message_id] = item.reply_count;
-                    return acc;
-                }, {});
-                setRepliesCount(repliesMap);
-            })
-            .catch(error => console.log("Failed to fetch replies count: There is no massages at this Channel aright now"));
     };
 
 
@@ -886,7 +890,7 @@ function ChatChannel(props) {
             const message_interval = setInterval(() => {
                 props.fetchRooms();
                 props.fetch_messages(id);
-                fetchRepliesCount();
+                props.fetchRepliesCount(id);
                 props.fetchUnreadMessageCounts(apiKey)
                 if (selectedMessageId)
                     fetchRepliesForMessage(selectedMessageId);
@@ -978,9 +982,9 @@ function ChatChannel(props) {
                                                         ))}
                                                     </div>
                                                     <div className="message-actions">
-                                                        {repliesCount[message.id] > 0 && (
+                                                        {props.repliesCount[message.id] > 0 && (
                                                             <button onClick={() => handleShowReplies(message.id)}>
-                                                                Replies: {repliesCount[message.id]}
+                                                                Replies: {props.repliesCount[message.id]}
                                                             </button>
                                                         )}
                                                         <button onClick={() => navigateToThread(id, message.id)}>Reply!
@@ -1115,7 +1119,9 @@ function ChatChannel(props) {
                                         <label htmlFor="comment">What do you have to say?</label>
                                         <textarea name="comment" value={props.newMessage}
                                                   onChange={(e) => props.setNewMessage(e.target.value)}></textarea>
-                                        <button onClick={(event)=>props.handlePostMessage(event, id)} className="post_room_messages">Post</button>
+                                        <button onClick={(event) => props.handlePostMessage(event, id)}
+                                                className="post_room_messages">Post
+                                        </button>
                                     </div>
                                 </div>
 
