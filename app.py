@@ -386,17 +386,11 @@ def reaction(message_id):
 def get_message(message_id):
     api_key = request.headers.get('Authorization')
     if not api_key:
-        return jsonify({
-            'status': 'fail',
-            'error': 'Missing API key in request header'
-        }), 400
+        return {}, 400
 
     user = query_db('SELECT * FROM users WHERE api_key = ?', [api_key], one=True)
     if not user:
-        return jsonify({
-            'status': 'fail',
-            'error': 'Invalid API key'
-        }), 403
+        return {}, 403
 
     message = query_db(
         'SELECT * FROM messages LEFT JOIN users ON messages.user_id = users.id WHERE messages.id = ?',
@@ -405,3 +399,21 @@ def get_message(message_id):
         return jsonify(dict(message)), 200
     else:
         return jsonify({'status': 'fail', 'error': 'message not found'}), 404
+
+
+@app.route('/api/check_valid/<int:channel_id>/<int:message_id>', methods=['GET'])
+def check_valid(channel_id, message_id):
+    api_key = request.headers.get('Authorization')
+    if not api_key:
+        return {}, 400
+
+    user = query_db('SELECT * FROM users WHERE api_key = ?', [api_key], one=True)
+    if not user:
+        return {}, 403
+
+    print("check if thread exists in channel")  # For debugging
+    message = query_db('SELECT * FROM messages WHERE id = ? AND channels_id = ?', [message_id, channel_id], one=True)
+    if message:
+        return jsonify({'status': 'success'}), 200
+    else:
+        return jsonify({'status': 'fail'}), 404

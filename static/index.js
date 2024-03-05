@@ -1115,6 +1115,7 @@ function Thread(props) {
     let {id, msg_id} = useParams();
     let history = useHistory();
     const [view, setView] = React.useState('reply');
+    const [valid, setValid] = React.useState(true);
 
     const goToSplash = () => {
         history.push('/');
@@ -1147,6 +1148,26 @@ function Thread(props) {
         setView('channel'); // only show channel list
         history.push(`/`);
     };
+
+    const checkValidThread = () => {
+        fetch(`/api/check_valid/${id}/${msg_id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                console.log('-+_+_+_+_+_+_+_+_+_+_+',response.json());
+                setValid(false);
+            }
+
+        })
+        .catch(error => console.error("Failed to check if thread is valid:", error));
+    }
+
+
     const apiKey = localStorage.getItem('zhiweic_api-key');
     React.useEffect(() => {
 
@@ -1162,6 +1183,7 @@ function Thread(props) {
             props.fetch_messages(id);
             props.updateLastViewed(id);
             props.fetch_message(msg_id);
+            checkValidThread(id, msg_id);
             const message_interval = setInterval(() => {
                 props.fetchRooms();
                 props.fetch_messages(id);
@@ -1181,7 +1203,9 @@ function Thread(props) {
     console.log("In the room {" + id + "} message {" + props.selectedMessageId + "}");
 
 
-    if (rooms.length < parseInt(id, 10)) {
+
+
+    if (rooms.length < parseInt(id, 10) || !valid) {
         return <NotFoundPage/>;
     } else {
         return (
