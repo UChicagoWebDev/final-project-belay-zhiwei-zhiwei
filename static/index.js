@@ -363,6 +363,22 @@ function App() {
         return message.match(regex) || [];
     };
 
+    const fetch_message = (id) => {
+        const apiKey = localStorage.getItem('zhiweic_api-key');
+        fetch(`/api/message/${id}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': apiKey,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(message => {
+                setSelectedMessage(message);
+            })
+            .catch(error => console.error("Failed to fetch messages:", error));
+    };
+
 
     return (
         <BrowserRouter>
@@ -390,7 +406,7 @@ function App() {
                                 handleShowReplies={handleShowReplies}
                                 handleAddReaction={handleAddReaction}
                                 parseImageUrls={parseImageUrls}
-
+                                fetch_message={fetch_message}
 
                                 rooms={rooms}
                                 setRooms={setRooms}
@@ -579,7 +595,7 @@ function SplashScreen(props) {
 
     const navigateToChannel = (channelId) => {
         history.push(`/channel/${channelId}`);
-        props.setSelectedMessageId(null);
+        // props.setSelectedMessageId();
     };
 
     return (
@@ -1131,9 +1147,9 @@ function Thread(props) {
         setView('channel'); // only show channel list
         history.push(`/`);
     };
-
+    const apiKey = localStorage.getItem('zhiweic_api-key');
     React.useEffect(() => {
-        const apiKey = localStorage.getItem('zhiweic_api-key');
+
         if (!apiKey) {
             history.push('/login');
             alert("Please login before entering to the thread.")
@@ -1145,12 +1161,14 @@ function Thread(props) {
             props.fetch_room_detail(id);
             props.fetch_messages(id);
             props.updateLastViewed(id);
+            props.fetch_message(msg_id);
             const message_interval = setInterval(() => {
                 props.fetchRooms();
                 props.fetch_messages(id);
                 props.fetchRepliesCount(id);
                 props.fetchUnreadMessageCounts(apiKey)
                 props.fetchRepliesForMessage(msg_id);
+                props.fetch_message(msg_id);
                 // props.updateLastViewed(id);
             }, 500);
             return () => clearInterval(message_interval);
@@ -1311,16 +1329,21 @@ function Thread(props) {
 
                     <div className="replies-section">
 
-                        <div className="back-button" onClick={() => {handleBackToMain()}}>Back to Channel</div>
-                        <button onClick={navigateToChannel}>close</button>
+                        <div className="back-button" onClick={() => {
+                            handleBackToMain()
+                        }}>Back to Channel
+                        </div>
+                        <button onClick={() => {
+                            handleBackToChannels()
+                        }}>close</button>
 
                         <h3>Message</h3>
                         <div className="message">
-                            <div className="author">{props.selectedMessage.name}</div>
+                            <div className="author">{props.selectedMessage && props.selectedMessage.name}</div>
                             <div className="content">
-                                {props.selectedMessage.body}
+                                {props.selectedMessage && props.selectedMessage.body}
                                 {/* Display images after the message content */}
-                                {props.parseImageUrls(props.selectedMessage.body).map((url, imgIndex) => (
+                                {props.selectedMessage && props.parseImageUrls(props.selectedMessage.body).map((url, imgIndex) => (
                                     <img key={imgIndex} src={url} alt="Message Attachment"
                                          style={{
                                              maxWidth: '100px',

@@ -58,7 +58,6 @@ def new_user():
 @app.route('/channel')
 @app.route('/channel/<channel_id>')
 @app.route('/channel/<channel_id>/thread/<message_id>')
-
 def index(channel_id=None, message_id=None):
     return app.send_static_file('index.html')
 
@@ -286,7 +285,6 @@ def get_message_replies_count(channel_id):
     if not parent_messages:
         return jsonify({}), 200
 
-
     replies_counts = []
     for message in parent_messages:
         replies_count = query_db(
@@ -364,7 +362,8 @@ def reaction(message_id):
             return jsonify({'status': 'success', 'message': 'Reaction already exists'}), 200
         else:
             # Insert new reaction
-            query_db('INSERT INTO reactions (message_id, user_id, emoji) VALUES (?, ?, ?)', [message_id, user['id'], emoji])
+            query_db('INSERT INTO reactions (message_id, user_id, emoji) VALUES (?, ?, ?)',
+                     [message_id, user['id'], emoji])
             return jsonify({'status': 'success', 'message': 'Reaction added'}), 201
 
     elif request.method == 'GET':
@@ -382,3 +381,27 @@ def reaction(message_id):
             'status': 'fail',
             'error': 'Invalid method. Only takes POST and GET methods in the request'
         }), 400
+
+@app.route('/api/message/<int:message_id>', methods=['GET'])
+def get_message(message_id):
+    api_key = request.headers.get('Authorization')
+    if not api_key:
+        return jsonify({
+            'status': 'fail',
+            'error': 'Missing API key in request header'
+        }), 400
+
+    user = query_db('SELECT * FROM users WHERE api_key = ?', [api_key], one=True)
+    if not user:
+        return jsonify({
+            'status': 'fail',
+            'error': 'Invalid API key'
+        }), 403
+
+    message = query_db(
+        'SELECT * FROM messages LEFT JOIN users ON messages.user_id = users.id WHERE messages.id = ?',
+        [message_id], one=True)
+    if message:
+        return jsonify(dict(message)), 200
+    else:
+        return jsonify({'status': 'fail', 'error': 'message not found'}), 404

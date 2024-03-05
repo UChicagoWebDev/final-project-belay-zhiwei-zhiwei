@@ -535,12 +535,7 @@ h3 {
 }
 
 .replies-section .back-button {
-    background-color: #ececec;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    display: inline-block;
+    display: none;
 }
 
 .replies-section button {
@@ -666,6 +661,7 @@ h3 {
     display: none;
 }
 
+
 @media (max-width: 600px) {
     .channel-container {
         flex-direction: column;
@@ -710,13 +706,23 @@ h3 {
         display: none;
     }
 
-    .splash .roomList{
+    .splash .roomList {
         width: 500px;
-    max-height: 100vh;
-    overflow-y: auto;
-    margin-left: -120px;
-    padding: 20px;
-    box-shadow:2px 0 10px rgba(0, 0, 0, 0.2);
+        max-height: 100vh;
+        overflow-y: auto;
+        margin-left: -120px;
+        padding: 20px;
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
     }
+
+    .replies-section .back-button {
+    background-color: #007bff;
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+
 
 }
