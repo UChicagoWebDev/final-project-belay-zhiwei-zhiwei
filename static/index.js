@@ -935,8 +935,6 @@ function ChatChannel(props) {
         return (
 
             <div className="splash container">
-
-                <>
                     <div className="rooms">
                         {rooms.length > 0 ? (
                             <div className="roomList">
@@ -953,6 +951,7 @@ function ChatChannel(props) {
                             <div className="noRooms">No rooms yet! You get to be first!</div>
                         )}
                     </div>
+
 
                     <div className="room">
 
@@ -1067,16 +1066,9 @@ function ChatChannel(props) {
                                     </div>
                                 </div>
 
-                                {!props.messages.length && (
-                                    <div className="noMessages">
-                                        <h2>Oops, we can't find that room!</h2>
-                                        <p><a onClick={goToSplash}>Let's go home and try again.</a></p>
-                                    </div>
-                                )}
                             </div>
                         </div>
                     </div>
-                </>
             </div>
         );
     }
@@ -1089,7 +1081,7 @@ function Thread(props) {
     let history = useHistory();
     const [view, setView] = React.useState('reply');
 
-     const goToSplash = () => {
+    const goToSplash = () => {
         history.push('/');
     };
 
@@ -1210,7 +1202,6 @@ function Thread(props) {
                                             <div key={index} className="message-container">
                                                 <div className="message">
                                                     <div className="author">{message.name} :</div>
-                                                    {/*<div className="content">{message.body}</div>*/}
                                                     <div className="content">
                                                         {message.body}
                                                         {/* Display images after the message content */}
@@ -1267,14 +1258,15 @@ function Thread(props) {
 
                                             </div>
                                         ))}
-                                        <div className="comment_box">
-                                            <label htmlFor="comment">What do you have to say?</label>
-                                            <textarea name="comment" value={props.newMessage}
-                                                      onChange={(e) => props.setNewMessage(e.target.value)}></textarea>
-                                            <button onClick={(event) => props.handlePostMessage(event, id)}
-                                                    className="post_room_messages">Post
-                                            </button>
-                                        </div>
+
+                                    </div>
+                                    <div className="comment_box">
+                                        <label htmlFor="comment">What do you have to say?</label>
+                                        <textarea name="comment" value={props.newMessage}
+                                                  onChange={(e) => props.setNewMessage(e.target.value)}></textarea>
+                                        <button onClick={(event) => props.handlePostMessage(event, id)}
+                                                className="post_room_messages">Post
+                                        </button>
                                     </div>
 
                                 </div>
@@ -1289,16 +1281,15 @@ function Thread(props) {
 
                     <div className="replies-section">
 
-                        <div className="back-button" onClick={handleBackToChannels}>Back to Channels</div>
+                        {/*<div className="back-button" onClick={handleBackToChannels}>Back to Channel</div>*/}
                         <button onClick={() => navigateToChannel(id)}>close</button>
 
                         <h3>Replies</h3>
                         <div className="replies">
-
                             {props.replies.map((reply, index) => (
                                 <div key={index} className="reply">
                                     {/*<strong>{reply.name}</strong>: {reply.body}*/}
-                                    <div><strong>{reply.name}</strong>:</div>
+                                    <div className="room chat message author"><strong>{reply.name}</strong> :</div>
                                     <div className="content">
                                         {reply.body}
                                         {/* Display images after the reply content */}

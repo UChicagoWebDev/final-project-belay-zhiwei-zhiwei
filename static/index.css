@@ -6,13 +6,13 @@ body {
 
 .container {
     width: 100%;
-    height: 100%;
+    height: 100%; /* This assumes that the parent of .container has a defined height */
     margin: auto;
-    /*padding: 0 30px 0 30px;*/
+    display: flex;
+    flex-direction: row; /* Children will be laid out in a row */
     background-color: white;
     box-shadow: 0 0 20px black;
     font-family: sans-serif;
-
 }
 
 .message-container {
@@ -286,6 +286,11 @@ h3 {
     box-shadow: 0 2px 5px magenta;
 }
 
+.rooms {
+    width: 300px; /* Assign a fixed width to the rooms list */
+    /* Other styles for .rooms */
+}
+
 .splash .roomList {
     width: 250px; /* Set a fixed width for the room list */
     max-height: 100vh; /* Set the maximum height to the viewport height */
@@ -388,9 +393,16 @@ h3 {
     padding: 12px;
 }
 
+.room {
+    flex-grow: 1; /* Allow the chat area to take up the remaining space */
+    /* Other styles for .chat */
+    overflow-y: auto;
+}
+
 .room .chat {
     /*display: grid !important;*/
     /*grid-template-columns: 2fr 1fr;*/
+    flex-grow: 1;
     height: 100%;
 }
 
@@ -424,7 +436,7 @@ h3 {
     flex-direction: column;
     margin-right: 20px;
     padding: 5px 0;
-    max-height: 600px;
+    max-height: 500px;
     overflow-y: auto;
 }
 
@@ -491,4 +503,148 @@ h3 {
 .room .chat .reaction {
     margin-right: 5px; /* Space between each reaction */
     flex: 1;
+}
+
+.replies-section {
+    background-color: #f7f7f7; /* Light gray background for the section */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for depth */
+    padding: 20px; /* Padding around the content */
+    margin: 20px; /* Margin around the section */
+    overflow: hidden; /* Hide overflow */
+    max-height: 100%;
+}
+
+.replies-section .back-button {
+    background-color: #ececec; /* Slightly darker than section background for contrast */
+    padding: 10px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-bottom: 20px; /* Space below the button */
+    display: inline-block; /* So it doesn't take full width */
+}
+
+.replies-section button {
+    /* Adjust padding and font size to make the button smaller */
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+.replies-section h3 {
+    color: #333; /* Dark color for the heading for readability */
+    margin-bottom: 20px; /* Space below the heading */
+}
+
+.replies-section .replies {
+    max-height: 400px; /* Limit the height of the replies container */
+    overflow-y: auto; /* Allow scrolling within the container */
+}
+
+.replies-section .reply {
+    /* Adjust reply layout */
+    display: flex;
+    flex-direction: column;
+}
+
+.replies-section .reply:last-child {
+    border-bottom: none; /* No border for the last reply */
+}
+
+.replies-section .author {
+    font-weight: bold; /* Make author name bold */
+    margin-bottom: 5px; /* Space between author name and content */
+    color: orange;
+}
+
+.replies-section .content {
+    margin-bottom: 10px; /* Space below the content */
+}
+
+.replies-section .message-reactions {
+    /* Adjust layout of message reactions */
+    display: flex;
+    flex-wrap: wrap; /* Allow reactions to wrap to the next line if there are many */
+    align-items: center; /* Align reactions vertically */
+    gap: 4px; /* Space between reactions */
+}
+
+.replies-section .reaction {
+    /* Styling for individual emoji reactions */
+    padding: 2px 5px; /* Smaller padding to reduce overall button size */
+    margin-right: 4px; /* Add some margin between emoji buttons */
+    background-color: #f2f2f2; /* Lighter background to distinguish it from the main buttons */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem; /* Adjust to preferred size */
+}
+
+.replies-section .reactions {
+    /* A container for all reactions to a message to align them properly */
+    display: flex;
+    align-items: center; /* Align the reactions vertically */
+    gap: 4px; /* Add a gap between each reaction */
+}
+
+.replies-section .reaction:hover {
+    background-color: #ccc; /* Slightly darker on hover */
+}
+
+.replies-section .users {
+    display: none; /* Hide users by default, shown on hover */
+    position: absolute; /* Position it absolutely to float above content */
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    z-index: 1; /* Ensure it's above other content */
+}
+
+.replies-section .comment_box {
+    margin-top: 10px; /* Space above the comment box */
+}
+
+.replies-section textarea {
+    width: 100%; /* Full width of the container */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 10px; /* Space below the textarea */
+}
+
+.replies-section .post_room_messages {
+    background-color: #0084ff; /* A different color to distinguish post button */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: block; /* Take up its own line */
+}
+
+/* Adjust the layout of the reply content and image */
+.replies-section .reply .content img {
+    max-width: 100px;
+    max-height: 100px;
+    margin-top: 10px;
+    border-radius: 4px; /* Optional: rounded corners for images */
+}
+
+.replies-section .comment_box textarea {
+    width: calc(100% - 20px); /* Full width minus padding */
+    padding: 10px; /* Comfortable padding inside the textarea */
+    margin-bottom: 10px; /* Space below the textarea */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.replies-section .comment_box .post_room_messages {
+    background-color: #007bff; /* Bootstrap primary button color */
+    color: white;
+    padding: 6px 12px; /* Smaller padding for a smaller button */
+    font-size: 0.8rem; /* Smaller font size */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-block; /* Align with other inline content if needed */
 }
