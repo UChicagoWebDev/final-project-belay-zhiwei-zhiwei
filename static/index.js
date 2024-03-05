@@ -698,8 +698,9 @@ function LoginForm(props) {
                 <h4>2</h4>
             </div>
             <div className="clip">
+                <h3>Enter your username and password to log in:</h3>
                 <div className="auth container">
-                    <h3>Enter your username and password to log in:</h3>
+
                     <form onSubmit={handleSubmit} className="alignedForm login">
                         <label htmlFor="username">Username</label>
                         <input
@@ -723,6 +724,7 @@ function LoginForm(props) {
                     <div className="failed">
                         <button type="button" onClick={handleSignup}>Create a new Account</button>
                     </div>
+
 
                     {errorMessage && (
                         <div className="failed">
@@ -855,8 +857,9 @@ function Profile(props) {
                 <h4>Profile Page</h4>
             </div>
             <div className="clip">
+                <h2>Welcome to Watch Party!</h2>
                 <div className="auth container">
-                    <h2>Welcome to Watch Party!</h2>
+
                     <div className="alignedForm">
                         <label htmlFor="username">Username: </label>
                         <input name="username" value={username} onChange={(e) => setUsername(e.target.value)}/>
@@ -900,7 +903,18 @@ function ChatChannel(props) {
 
     const navigateToThread = (channelId, messageId) => {
         history.push(`/channel/${channelId}/thread/${messageId}`);
+        props.setSelectedMessageId(messageId);
+        const message = props.messages.find(m => m.id === messageId);
+        props.setSelectedMessage(message);
+
+        console.log("props.setSelectedMessage(message)", props.selectedMessage)
+        // setView('reply');
+    };
+
+    const handleBackToChannels = () => {
         props.setSelectedMessageId(null);
+        setView('channel'); // only show channel list
+        history.push(`/channel/${channelId}`);
     };
 
 
@@ -1096,6 +1110,7 @@ function Thread(props) {
         props.setSelectedMessageId(messageId);
         const message = props.messages.find(m => m.id === messageId);
         props.setSelectedMessage(message);
+        console.log("props.setSelectedMessage(message)", props.selectedMessage)
         setView('reply');
     };
 
@@ -1283,6 +1298,23 @@ function Thread(props) {
 
                         {/*<div className="back-button" onClick={handleBackToChannels}>Back to Channel</div>*/}
                         <button onClick={() => navigateToChannel(id)}>close</button>
+
+                        <h3>Message</h3>
+                        <div className="message">
+                            <div className="author">{props.selectedMessage.name}</div>
+                            <div className="content">
+                                {props.selectedMessage.body}
+                                {/* Display images after the message content */}
+                                {props.parseImageUrls(props.selectedMessage.body).map((url, imgIndex) => (
+                                    <img key={imgIndex} src={url} alt="Message Attachment"
+                                         style={{
+                                             maxWidth: '100px',
+                                             maxHeight: '100px',
+                                             marginTop: '10px'
+                                         }}/>
+                                ))}
+                            </div>
+                        </div>
 
                         <h3>Replies</h3>
                         <div className="replies">

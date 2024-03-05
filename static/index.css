@@ -6,13 +6,17 @@ body {
 
 .container {
     width: 100%;
-    height: 100%; /* This assumes that the parent of .container has a defined height */
+    height: 100%;
     margin: auto;
     display: flex;
-    flex-direction: row; /* Children will be laid out in a row */
+    flex-direction: row-reverse;
     background-color: white;
     box-shadow: 0 0 20px black;
     font-family: sans-serif;
+    flex-wrap: nowrap;
+    align-content: stretch;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 .message-container {
@@ -78,6 +82,10 @@ button:hover {
 .alignedForm {
     display: grid !important;
     grid-template-columns: 1fr 1fr 100%;
+    align-content: center;
+    justify-content: end;
+    align-items: start;
+    justify-items: end;
 }
 
 .alignedForm > * {
@@ -184,6 +192,7 @@ button:hover {
 
 .clip {
     overflow: hidden;
+    background-color: white;
 }
 
 .clip .container {
@@ -195,9 +204,9 @@ button:hover {
 .splash {
     display: flex;
     flex-direction: row;
-    align-items: flex-start; /* Align items at the top */
-    height: 100vh; /* Full height of the viewport */
-    overflow: hidden; /* Prevents any overflow outside the viewport */
+    align-items: flex-start;
+    height: 100vh;
+    overflow: hidden;
 }
 
 .splash .splashHeader {
@@ -287,39 +296,38 @@ h3 {
 }
 
 .rooms {
-    width: 300px; /* Assign a fixed width to the rooms list */
-    /* Other styles for .rooms */
+    width: 300px;
 }
 
 .splash .roomList {
-    width: 250px; /* Set a fixed width for the room list */
-    max-height: 100vh; /* Set the maximum height to the viewport height */
-    overflow-y: auto; /* Allows scrolling within the room list */
-    margin: 0; /* Remove any default margins */
-    padding: 20px; /* Add padding inside the room list */
-    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2); /* Optional: Add shadow to create depth */
+    width: 250px;
+    max-height: 100vh;
+    overflow-y: auto;
+    margin: 0;
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
 }
 
 .roomList button {
-    display: block; /* Make each button a block element */
-    width: 100%; /* Full width of the container */
-    padding: 10px; /* Add some padding */
-    margin-bottom: 8px; /* Space between buttons */
-    text-align: left; /* Align text to the left */
-    border: none; /* Remove border */
-    background-color: transparent; /* Transparent background */
-    cursor: pointer; /* Change cursor to pointer */
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 8px;
+    text-align: left;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
     color: #0c70bc;
     font-size: 20px;
-    transition: background-color 250ms, transform 250ms; /* Smooth transition for hover effects */
-    text-shadow: none; /* Removes text blur */
-    box-shadow: none; /* Removes box blur */
+    transition: background-color 250ms, transform 250ms;
+    text-shadow: none;
+    box-shadow: none;
     filter: none;
 }
 
 .roomList button:hover {
-    background-color: #e8e8e8; /* Slight background color on hover */
-    transform: translateX(10px); /* Shift to the right on hover */
+    background-color: #e8e8e8;
+    transform: translateX(10px);
 }
 
 .splash .roomList > a {
@@ -373,8 +381,10 @@ h3 {
 }
 
 .login .failed {
-    margin-top: 4em;
     display: flex;
+    margin-top: 100px;
+    border-left: 50px solid transparent;
+  border-right: 50px solid transparent;
 }
 
 .login .failed .message {
@@ -394,14 +404,11 @@ h3 {
 }
 
 .room {
-    flex-grow: 1; /* Allow the chat area to take up the remaining space */
-    /* Other styles for .chat */
+    flex-grow: 1;
     overflow-y: auto;
 }
 
 .room .chat {
-    /*display: grid !important;*/
-    /*grid-template-columns: 2fr 1fr;*/
     flex-grow: 1;
     height: 100%;
 }
@@ -410,7 +417,6 @@ h3 {
     margin-right: 20px;
     padding-right: 20px;
     height: 100%;
-    /*border-right: 8px solid lightgray;*/
 }
 
 .room .chat .comment_box textarea {
@@ -481,170 +487,173 @@ h3 {
 .room .replies-section {
     padding: 10px;
     margin-top: 20px;
-    background-color: #f0f0f0; /* Light grey background */
-    border: 1px solid #ccc; /* Light grey border */
-    overflow-y: auto; /* Add scroll for overflow */
-    /*min-height: 300px;*/
-    max-height: 500px; /* Set a max height */
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    overflow-y: auto;
+    max-height: 500px;
 }
 
 .room .chat .message-content {
     display: flex;
-    flex-wrap: wrap; /* Allow the content to wrap onto the next line */
-    align-items: center; /* Align items vertically */
+    flex-wrap: wrap;
+    align-items: center;
 }
 
 .room .chat .message-reactions {
     display: flex;
-    justify-content: flex-start; /* Align reactions to the start of the line */
-    margin-top: 5px; /* Space between the message text and reactions */
+    justify-content: flex-start;
+    margin-top: 5px;
 }
 
 .room .chat .reaction {
-    margin-right: 5px; /* Space between each reaction */
-    flex: 1;
+    padding: 2px 5px;
+    margin-right: 4px;
+    background-color: #f2f2f2;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
 }
 
+
 .replies-section {
-    background-color: #f7f7f7; /* Light gray background for the section */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* Subtle shadow for depth */
-    padding: 20px; /* Padding around the content */
-    margin: 20px; /* Margin around the section */
-    overflow: hidden; /* Hide overflow */
+    background-color: #f7f7f7;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin: 20px;
+    overflow: hidden;
     max-height: 100%;
 }
 
 .replies-section .back-button {
-    background-color: #ececec; /* Slightly darker than section background for contrast */
+    background-color: #ececec;
     padding: 10px 15px;
     border-radius: 4px;
     cursor: pointer;
-    margin-bottom: 20px; /* Space below the button */
-    display: inline-block; /* So it doesn't take full width */
+    margin-bottom: 20px;
+    display: inline-block;
 }
 
 .replies-section button {
-    /* Adjust padding and font size to make the button smaller */
     padding: 6px 12px;
     font-size: 0.8rem;
 }
 
 .replies-section h3 {
-    color: #333; /* Dark color for the heading for readability */
-    margin-bottom: 20px; /* Space below the heading */
+    color: #333;
+    margin-bottom: 20px;
 }
 
 .replies-section .replies {
-    max-height: 400px; /* Limit the height of the replies container */
-    overflow-y: auto; /* Allow scrolling within the container */
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .replies-section .reply {
-    /* Adjust reply layout */
     display: flex;
     flex-direction: column;
 }
 
 .replies-section .reply:last-child {
-    border-bottom: none; /* No border for the last reply */
+    border-bottom: none;
 }
 
 .replies-section .author {
-    font-weight: bold; /* Make author name bold */
-    margin-bottom: 5px; /* Space between author name and content */
+    font-weight: bold;
+    margin-bottom: 5px;
     color: orange;
 }
 
 .replies-section .content {
-    margin-bottom: 10px; /* Space below the content */
+    margin-bottom: 10px;
 }
 
 .replies-section .message-reactions {
-    /* Adjust layout of message reactions */
     display: flex;
-    flex-wrap: wrap; /* Allow reactions to wrap to the next line if there are many */
-    align-items: center; /* Align reactions vertically */
-    gap: 4px; /* Space between reactions */
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
 }
 
 .replies-section .reaction {
-    /* Styling for individual emoji reactions */
-    padding: 2px 5px; /* Smaller padding to reduce overall button size */
-    margin-right: 4px; /* Add some margin between emoji buttons */
-    background-color: #f2f2f2; /* Lighter background to distinguish it from the main buttons */
+    padding: 2px 5px;
+    margin-right: 4px;
+    background-color: #f2f2f2;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1rem; /* Adjust to preferred size */
+    font-size: 1rem;
 }
 
 .replies-section .reactions {
-    /* A container for all reactions to a message to align them properly */
     display: flex;
-    align-items: center; /* Align the reactions vertically */
-    gap: 4px; /* Add a gap between each reaction */
+    align-items: center;
+    gap: 4px;
 }
 
 .replies-section .reaction:hover {
-    background-color: #ccc; /* Slightly darker on hover */
+    background-color: #ccc;
 }
 
 .replies-section .users {
-    display: none; /* Hide users by default, shown on hover */
-    position: absolute; /* Position it absolutely to float above content */
+    display: none;
+    position: absolute;
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 5px;
-    z-index: 1; /* Ensure it's above other content */
+    z-index: 1;
 }
 
 .replies-section .comment_box {
-    margin-top: 10px; /* Space above the comment box */
+    margin-top: 10px;
 }
 
 .replies-section textarea {
-    width: 100%; /* Full width of the container */
+    width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    margin-bottom: 10px; /* Space below the textarea */
+    margin-bottom: 10px;
 }
 
 .replies-section .post_room_messages {
-    background-color: #0084ff; /* A different color to distinguish post button */
+    background-color: #0084ff;
     color: white;
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    display: block; /* Take up its own line */
+    display: block;
 }
 
-/* Adjust the layout of the reply content and image */
 .replies-section .reply .content img {
     max-width: 100px;
     max-height: 100px;
     margin-top: 10px;
-    border-radius: 4px; /* Optional: rounded corners for images */
+    border-radius: 4px;
 }
 
 .replies-section .comment_box textarea {
-    width: calc(100% - 20px); /* Full width minus padding */
-    padding: 10px; /* Comfortable padding inside the textarea */
-    margin-bottom: 10px; /* Space below the textarea */
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
 .replies-section .comment_box .post_room_messages {
-    background-color: #007bff; /* Bootstrap primary button color */
+    background-color: #007bff;
     color: white;
-    padding: 6px 12px; /* Smaller padding for a smaller button */
-    font-size: 0.8rem; /* Smaller font size */
+    padding: 6px 12px;
+    font-size: 0.8rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    display: inline-block; /* Align with other inline content if needed */
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+
 }
