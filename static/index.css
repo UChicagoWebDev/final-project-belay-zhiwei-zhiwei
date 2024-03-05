@@ -389,8 +389,8 @@ h3 {
 }
 
 .room .chat {
-    display: grid !important;
-    grid-template-columns: 2fr 1fr;
+    /*display: grid !important;*/
+    /*grid-template-columns: 2fr 1fr;*/
     height: 100%;
 }
 
