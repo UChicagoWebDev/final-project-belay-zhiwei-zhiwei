@@ -331,13 +331,6 @@ function App() {
         fetchRepliesForMessage(messageId);
     };
 
-    const goToThread = (messageId) => {
-        console.log("---------------GO to the message thread successfully---------------");
-        const message = messages.find(m => m.id === messageId);
-        setSelectedMessage(message);
-        setSelectedMessageId(messageId);
-        fetchRepliesForMessage(messageId);
-    }
 
     const handleAddReaction = (messageId, emoji) => {
         const apiKey = localStorage.getItem('zhiweic_api-key');
@@ -397,7 +390,6 @@ function App() {
                                 handleShowReplies={handleShowReplies}
                                 handleAddReaction={handleAddReaction}
                                 parseImageUrls={parseImageUrls}
-                                goToThread={goToThread}
 
 
                                 rooms={rooms}
@@ -441,7 +433,6 @@ function App() {
                                      handleShowReplies={handleShowReplies}
                                      handleAddReaction={handleAddReaction}
                                      parseImageUrls={parseImageUrls}
-                                     goToThread={goToThread}
 
                                      rooms={rooms}
                                      setRooms={setRooms}
@@ -588,6 +579,7 @@ function SplashScreen(props) {
 
     const navigateToChannel = (channelId) => {
         history.push(`/channel/${channelId}`);
+        props.setSelectedMessageId(null);
     };
 
     return (
@@ -903,11 +895,12 @@ function ChatChannel(props) {
 
     const navigateToChannel = (channelId) => {
         history.push(`/channel/${channelId}`);
+        props.setSelectedMessageId(null);
     };
 
     const navigateToThread = (channelId, messageId) => {
-        props.goToThread(messageId);
         history.push(`/channel/${channelId}/thread/${messageId}`);
+        props.setSelectedMessageId(null);
     };
 
 
@@ -1094,31 +1087,40 @@ function Thread(props) {
     const {unreadCounts} = props;
     let {id, msg_id} = useParams();
     let history = useHistory();
+    const [view, setView] = React.useState('reply');
 
-    const goToSplash = () => {
+     const goToSplash = () => {
         history.push('/');
     };
 
     const navigateToChannel = (channelId) => {
         history.push(`/channel/${channelId}`);
+        props.setSelectedMessageId(null);
+        setView('message');
     };
 
     const navigateToThread = (channelId, messageId) => {
-        console.log("---------------GO to the message thread successfully---------------");
+        history.push(`/channel/${channelId}/thread/${messageId}`);
+        props.setSelectedMessageId(messageId);
         const message = props.messages.find(m => m.id === messageId);
         props.setSelectedMessage(message);
-        props.setSelectedMessageId(messageId);
-        props.fetchRepliesForMessage(messageId);
-        history.push(`/channel/${channelId}/thread/${messageId}`);
+        setView('reply');
     };
 
+    const handleBackToChannels = () => {
+        props.setSelectedMessageId(null);
+        setView('channel');
+        history.push(`/channel/${channelId}`);
+    };
 
     React.useEffect(() => {
         const apiKey = localStorage.getItem('zhiweic_api-key');
         if (!apiKey) {
             history.push('/login');
+            alert("Please login before entering to the thread.")
         } else {
             document.title = `Belay Channel #${id}`;
+            props.setSelectedMessageId(msg_id);
             props.fetchRooms();
             props.fetchUnreadMessageCounts(apiKey);
             props.fetch_room_detail(id);
@@ -1135,10 +1137,10 @@ function Thread(props) {
         }
 
 
-    }, [id, msg_id]);
+    }, [id, props.selectedMessageId]);
 
 
-    console.log("In the room {" + id + "} message {" + msg_id + "}");
+    console.log("In the room {" + id + "} message {" + props.selectedMessageId + "}");
 
 
     if (rooms.length < parseInt(id, 10)) {
@@ -1201,6 +1203,8 @@ function Thread(props) {
                             <div className="container">
 
                                 <div className="chat">
+
+
                                     <div className="messages">
                                         {props.messages.map((message, index) => (
                                             <div key={index} className="message-container">
@@ -1282,13 +1286,13 @@ function Thread(props) {
 
                     </div>
 
-                    <div className="replies-section">
-                        {/*<h3>Message</h3>*/}
-                        {/*<div className="message">*/}
-                        {/*    <div className="author">{props.selectedMessage}</div>*/}
-                        {/*</div>*/}
-                        <h3>Replies</h3>
 
+                    <div className="replies-section">
+
+                        <div className="back-button" onClick={handleBackToChannels}>Back to Channels</div>
+                        <button onClick={() => navigateToChannel(id)}>close</button>
+
+                        <h3>Replies</h3>
                         <div className="replies">
 
                             {props.replies.map((reply, index) => (
@@ -1347,14 +1351,14 @@ function Thread(props) {
                             <div></div>
                             <textarea
                                 name="comment"
-                                value={props.replyInput[msg_id] || ''}
+                                value={props.replyInput[props.selectedMessageId] || ''}
                                 onChange={(e) => props.setReplyInput({
                                     ...props.replyInput,
-                                    [msg_id]: e.target.value
+                                    [props.selectedMessageId]: e.target.value
                                 })}
                             ></textarea>
                             <button
-                                onClick={(e) => props.handlePostReply(e, msg_id)}
+                                onClick={(e) => props.handlePostReply(e, props.selectedMessageId)}
                                 className="post_room_messages">Post
                             </button>
                         </div>
@@ -1383,4 +1387,6 @@ function NotFoundPage() {
 
 const rootContainer = document.getElementById('root');
 const root = ReactDOM.createRoot(rootContainer);
-root.render(<App/>);
+root.render(
+    <App/>
+);
