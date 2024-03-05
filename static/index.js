@@ -330,6 +330,15 @@ function App() {
         setSelectedMessageId(messageId);
         fetchRepliesForMessage(messageId);
     };
+
+    const goToThread = (messageId) => {
+        console.log("---------------GO to the message thread successfully---------------");
+        const message = messages.find(m => m.id === messageId);
+        setSelectedMessage(message);
+        setSelectedMessageId(messageId);
+        fetchRepliesForMessage(messageId);
+    }
+
     const handleAddReaction = (messageId, emoji) => {
         const apiKey = localStorage.getItem('zhiweic_api-key');
         fetch(`/api/message/${messageId}/reaction`, {
@@ -388,6 +397,7 @@ function App() {
                                 handleShowReplies={handleShowReplies}
                                 handleAddReaction={handleAddReaction}
                                 parseImageUrls={parseImageUrls}
+                                goToThread={goToThread}
 
 
                                 rooms={rooms}
@@ -431,6 +441,7 @@ function App() {
                                      handleShowReplies={handleShowReplies}
                                      handleAddReaction={handleAddReaction}
                                      parseImageUrls={parseImageUrls}
+                                     goToThread={goToThread}
 
                                      rooms={rooms}
                                      setRooms={setRooms}
@@ -895,11 +906,7 @@ function ChatChannel(props) {
     };
 
     const navigateToThread = (channelId, messageId) => {
-        console.log("---------------GO to the message thread successfully---------------");
-        const message = props.messages.find(m => m.id === messageId);
-        props.setSelectedMessage(message);
-        props.setSelectedMessageId(messageId);
-        props.fetchRepliesForMessage(messageId);
+        props.goToThread(messageId);
         history.push(`/channel/${channelId}/thread/${messageId}`);
     };
 
