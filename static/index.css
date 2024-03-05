@@ -43,6 +43,9 @@ button:hover {
     margin-left: auto;
     z-index: 5;
     height: 44px;
+    position: absolute;
+    top: 0;
+    left: 300px;
 }
 
 .loginHeader > div {
@@ -221,6 +224,7 @@ button:hover {
     grid-template-rows: 2fr 1fr;
 }
 
+
 .splash h1,
 h2,
 h3 {
@@ -289,6 +293,10 @@ h3 {
     border-radius: 20px;
     box-shadow: 0 0 4px magenta;
     filter: drop-shadow(10px 4px 4px #4444dd);
+    width: 300px;
+    position: absolute;
+    top: 550px;
+    left: 660px;
 }
 
 .splash .hero button:hover {
@@ -384,7 +392,7 @@ h3 {
     display: flex;
     margin-top: 100px;
     border-left: 50px solid transparent;
-  border-right: 50px solid transparent;
+    border-right: 50px solid transparent;
 }
 
 .login .failed .message {
@@ -654,6 +662,61 @@ h3 {
     display: inline-block;
 }
 
-@media (max-width: 768px) {
+.back-button {
+    display: none;
+}
+
+@media (max-width: 600px) {
+    .channel-container {
+        flex-direction: column;
+    }
+
+    .room {
+        flex-grow: 1;
+        overflow-y: auto;
+        margin: auto;
+        width: 500px;
+        height: 100%;
+    }
+
+    .channel-list, .message-list, .narrow-message-list, .reply-list {
+        max-width: 500px;
+        flex: none;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .back-button {
+        display: inline-block;
+        margin: 10px;
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        text-align: center;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .clip {
+        overflow: hidden;
+        background-color: white;
+        margin: auto;
+        max-width: 500px;
+    }
+
+    .splash .hero {
+        display: none;
+    }
+
+    .splash .roomList{
+        width: 500px;
+    max-height: 100vh;
+    overflow-y: auto;
+    margin-left: -120px;
+    padding: 20px;
+    box-shadow:2px 0 10px rgba(0, 0, 0, 0.2);
+    }
 
 }

@@ -602,6 +602,18 @@ function SplashScreen(props) {
 
 
             <div className="hero">
+                <div className="splashHeader">
+                    <div className="loginHeader">
+                        {props.user ? (
+                            <div className="loggedIn" onClick={() => history.push('/profile')}>
+                                <span className="username">Welcome back, {props.user.username}!</span>
+                                <span className="material-symbols-outlined md-18">person</span>
+                            </div>
+                        ) : (
+                            <button onClick={handleLoginClick}>Login</button>
+                        )}
+                    </div>
+                </div>
                 <div className="logo">
                     <img id="tv" src={"/static/tv.jpeg"} alt="TV"/>
                     <img id="popcorn" src={"/static/popcorn.png"} alt="Popcorn"/>
@@ -614,19 +626,6 @@ function SplashScreen(props) {
                 )}
             </div>
 
-
-            <div className="splashHeader">
-                <div className="loginHeader">
-                    {props.user ? (
-                        <div className="loggedIn" onClick={() => history.push('/profile')}>
-                            <span className="username">Welcome back, {props.user.username}!</span>
-                            <span className="material-symbols-outlined md-18">person</span>
-                        </div>
-                    ) : (
-                        <button onClick={handleLoginClick}>Login</button>
-                    )}
-                </div>
-            </div>
 
         </div>
     );
@@ -891,6 +890,7 @@ function ChatChannel(props) {
     const {unreadCounts} = props;
     let {id} = useParams(); // Get the channel ID from the URL
     let history = useHistory();
+    const [view, setView] = React.useState('message');
 
     const goToSplash = () => {
         history.push('/');
@@ -899,6 +899,7 @@ function ChatChannel(props) {
     const navigateToChannel = (channelId) => {
         history.push(`/channel/${channelId}`);
         props.setSelectedMessageId(null);
+        setView('message');
     };
 
     const navigateToThread = (channelId, messageId) => {
@@ -914,7 +915,7 @@ function ChatChannel(props) {
     const handleBackToChannels = () => {
         props.setSelectedMessageId(null);
         setView('channel'); // only show channel list
-        history.push(`/channel/${channelId}`);
+        history.push(`/`);
     };
 
 
@@ -949,60 +950,63 @@ function ChatChannel(props) {
         return (
 
             <div className="splash container">
-                    <div className="rooms">
-                        {rooms.length > 0 ? (
-                            <div className="roomList">
-                                <h2>Rooms</h2>
-                                {rooms.map((room) => (
-                                    <button key={room.id} onClick={() => navigateToChannel(room.id)}
-                                            style={{backgroundColor: room.id === parseInt(id, 10) ? 'orange' : 'transparent'}}>
-                                        {room.name} {unreadCounts[room.id] !== 0 &&
-                                        <strong>({unreadCounts[room.id]} unread messages)</strong>}
-                                    </button>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="noRooms">No rooms yet! You get to be first!</div>
-                        )}
+                <div className={`rooms ${view !== 'channel' ? 'hidden' : ''}`}>
+                    {rooms.length > 0 ? (
+                        <div className="roomList">
+                            <h2>Rooms</h2>
+                            {rooms.map((room) => (
+                                <button key={room.id} onClick={() => navigateToChannel(room.id)}
+                                        style={{backgroundColor: room.id === parseInt(id, 10) ? 'orange' : 'transparent'}}>
+                                    {room.name} {unreadCounts[room.id] !== 0 &&
+                                    <strong>({unreadCounts[room.id]} unread messages)</strong>}
+                                </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="noRooms">No rooms yet! You get to be first!</div>
+                    )}
+                </div>
+
+
+                <div className="room">
+
+                    <div className="header">
+                        <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
+                        <h4>2</h4>
+                        <div className="roomDetail">
+                            {!props.isEditing && props.currChannel ? (
+                                <div className="displayRoomName">
+                                    <h3 className="curr_room_name">
+                                        Chatting in <strong>{props.currChannel.name}</strong>
+                                        <a onClick={props.handleEditClick}>
+                                            <span className="material-symbols-outlined md-18">edit</span>
+                                        </a>
+                                    </h3>
+                                </div>
+                            ) : (
+                                <div className="editRoomName">
+                                    <h3>
+                                        Chatting in <input value={props.newRoomName}
+                                                           onChange={(e) => props.setNewRoomName(e.target.value)}/>
+                                        <button
+                                            onClick={() => props.handleUpdateRoomName(id, props.newRoomName)}>Update
+                                        </button>
+                                    </h3>
+                                </div>
+                            )}
+                            <a className="shar_link">/rooms/{id}</a>
+                        </div>
                     </div>
 
 
-                    <div className="room">
+                    <div className="clip">
 
-                        <div className="header">
-                            <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
-                            <h4>2</h4>
-                            <div className="roomDetail">
-                                {!props.isEditing && props.currChannel ? (
-                                    <div className="displayRoomName">
-                                        <h3 className="curr_room_name">
-                                            Chatting in <strong>{props.currChannel.name}</strong>
-                                            <a onClick={props.handleEditClick}>
-                                                <span className="material-symbols-outlined md-18">edit</span>
-                                            </a>
-                                        </h3>
-                                    </div>
-                                ) : (
-                                    <div className="editRoomName">
-                                        <h3>
-                                            Chatting in <input value={props.newRoomName}
-                                                               onChange={(e) => props.setNewRoomName(e.target.value)}/>
-                                            <button
-                                                onClick={() => props.handleUpdateRoomName(id, props.newRoomName)}>Update
-                                            </button>
-                                        </h3>
-                                    </div>
-                                )}
-                                <a className="shar_link">/rooms/{id}</a>
-                            </div>
-                        </div>
+                        <div className="container">
 
+                            <div className="chat">
 
-                        <div className="clip">
-
-                            <div className="container">
-
-                                <div className="chat">
+                                <div className={`message-list ${view !== 'message' ? 'hidden' : ''}`}>
+                                    <div className="back-button" onClick={handleBackToChannels}>Back to Channels</div>
 
                                     <div className="messages">
                                         {props.messages.map((message, index) => (
@@ -1067,22 +1071,23 @@ function ChatChannel(props) {
                                             </div>
                                         ))}
                                     </div>
-
-
-                                    {/*{!props.selectedMessageId && (<div></div>)}*/}
-                                    <div className="comment_box">
-                                        <label htmlFor="comment">What do you have to say?</label>
-                                        <textarea name="comment" value={props.newMessage}
-                                                  onChange={(e) => props.setNewMessage(e.target.value)}></textarea>
-                                        <button onClick={(event) => props.handlePostMessage(event, id)}
-                                                className="post_room_messages">Post
-                                        </button>
-                                    </div>
                                 </div>
 
+
+                                {/*{!props.selectedMessageId && (<div></div>)}*/}
+                                <div className="comment_box">
+                                    <label htmlFor="comment">What do you have to say?</label>
+                                    <textarea name="comment" value={props.newMessage}
+                                              onChange={(e) => props.setNewMessage(e.target.value)}></textarea>
+                                    <button onClick={(event) => props.handlePostMessage(event, id)}
+                                            className="post_room_messages">Post
+                                    </button>
+                                </div>
                             </div>
+
                         </div>
                     </div>
+                </div>
             </div>
         );
     }
@@ -1116,8 +1121,15 @@ function Thread(props) {
 
     const handleBackToChannels = () => {
         props.setSelectedMessageId(null);
-        setView('channel');
-        history.push(`/channel/${channelId}`);
+        setView('channel'); // only show channel list
+        history.push(`/channel/${id}`);
+    };
+
+
+    const handleBackToMain = () => {
+        props.setSelectedMessageId(null);
+        setView('channel'); // only show channel list
+        history.push(`/`);
     };
 
     React.useEffect(() => {
@@ -1139,6 +1151,7 @@ function Thread(props) {
                 props.fetchRepliesCount(id);
                 props.fetchUnreadMessageCounts(apiKey)
                 props.fetchRepliesForMessage(msg_id);
+                // props.updateLastViewed(id);
             }, 500);
             return () => clearInterval(message_interval);
         }
@@ -1158,7 +1171,8 @@ function Thread(props) {
 
 
                 <>
-                    <div className="rooms">
+                    <div className={`rooms ${view !== 'channel' ? 'hidden' : ''}`}>
+
                         {rooms.length > 0 ? (
                             <div className="roomList">
                                 <h2>Rooms</h2>
@@ -1176,7 +1190,8 @@ function Thread(props) {
                     </div>
 
 
-                    <div className="room">
+                    {/*<div className="room">*/}
+                    <div className={`room ${view !== 'message' ? 'hidden' : ''}`}>
 
                         <div className="header">
                             <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
@@ -1296,8 +1311,8 @@ function Thread(props) {
 
                     <div className="replies-section">
 
-                        {/*<div className="back-button" onClick={handleBackToChannels}>Back to Channel</div>*/}
-                        <button onClick={() => navigateToChannel(id)}>close</button>
+                        <div className="back-button" onClick={() => {handleBackToMain()}}>Back to Channel</div>
+                        <button onClick={navigateToChannel}>close</button>
 
                         <h3>Message</h3>
                         <div className="message">
