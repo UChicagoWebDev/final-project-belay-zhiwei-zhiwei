@@ -9,7 +9,7 @@ body {
     height: 100%;
     margin: auto;
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
     background-color: white;
     box-shadow: 0 0 20px black;
     font-family: sans-serif;
@@ -419,6 +419,8 @@ h3 {
 .room .chat {
     flex-grow: 1;
     height: 100%;
+    width: auto;
+    position: relative;
 }
 
 .room .chat .comment_box {
@@ -450,6 +452,7 @@ h3 {
     flex-direction: column;
     margin-right: 20px;
     padding: 5px 0;
+    width: 95%;
     max-height: 500px;
     overflow-y: auto;
 }
@@ -663,6 +666,9 @@ h3 {
 
 
 @media (max-width: 600px) {
+    .container{
+        flex: none;
+    }
     .channel-container {
         flex-direction: column;
     }
@@ -699,7 +705,7 @@ h3 {
         overflow: hidden;
         background-color: white;
         margin: auto;
-        max-width: 500px;
+        width: 95%;
     }
 
     .splash .hero {
@@ -716,13 +722,20 @@ h3 {
     }
 
     .replies-section .back-button {
-    background-color: #007bff;
-    padding: 10px 15px;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-bottom: 20px;
-    display: inline-block;
-}
+        background-color: #007bff;
+        padding: 10px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        display: inline-block;
+    }
 
+    .header h4 {
+        display: none;
+    }
+
+    .alignedForm{
+        justify-content: start;
+    }
 
 }

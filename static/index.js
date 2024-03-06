@@ -634,7 +634,7 @@ function SplashScreen(props) {
                     <img id="tv" src={"/static/tv.jpeg"} alt="TV"/>
                     <img id="popcorn" src={"/static/popcorn.png"} alt="Popcorn"/>
                 </div>
-                <h1>Slack</h1>
+                <h1>Belay</h1>
                 {props.user ? (
                     <button className="create" onClick={handleCreateRoom}>Create a Room</button>
                 ) : (
@@ -709,36 +709,41 @@ function LoginForm(props) {
     return (
         <div className="login">
             <div className="header">
-                <h2><a onClick={() => history.push('/')}>Watch Party</a></h2>
-                <h4>2</h4>
+                <h2><a onClick={() => history.push('/')}>Belay</a></h2>
+                <h4></h4>
             </div>
             <div className="clip">
                 <h3>Enter your username and password to log in:</h3>
                 <div className="auth container">
 
-                    <form onSubmit={handleSubmit} className="alignedForm login">
-                        <label htmlFor="username">Username</label>
-                        <input
-                            type="text"
-                            name="username"
-                            value={username}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <div></div>
-                        <label htmlFor="password">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={password}
-                            onChange={handleInputChange}
-                            required
-                        />
-                        <button type="submit">Login</button>
-                    </form>
-                    <div className="failed">
+                    <div className="alignedForm">
+                        <form onSubmit={handleSubmit} className="alignedForm login">
+                            <label htmlFor="username">Username</label>
+                            <input
+                                type="text"
+                                name="username"
+                                value={username}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            <div></div>
+                            <label htmlFor="password">Password</label>
+                            <input
+                                type="password"
+                                name="password"
+                                value={password}
+                                onChange={handleInputChange}
+                                required
+                            />
+                            <button type="submit">Login</button>
+                        </form>
                         <button type="button" onClick={handleSignup}>Create a new Account</button>
                     </div>
+
+
+                    {/*<div className="failed">*/}
+
+                    {/*</div>*/}
 
 
                     {errorMessage && (
@@ -868,11 +873,11 @@ function Profile(props) {
     return (
         <div className="profile">
             <div className="header">
-                <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
+                <h2><a className="go_to_splash_page" onClick={goToSplash}>Belay</a></h2>
                 <h4>Profile Page</h4>
             </div>
             <div className="clip">
-                <h2>Welcome to Watch Party!</h2>
+                <h2>Welcome to Belay!</h2>
                 <div className="auth container">
 
                     <div className="alignedForm">
@@ -987,8 +992,7 @@ function ChatChannel(props) {
                 <div className="room">
 
                     <div className="header">
-                        <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
-                        <h4>2</h4>
+                        <h2><a className="go_to_splash_page" onClick={goToSplash}>Belay</a></h2>
                         <div className="roomDetail">
                             {!props.isEditing && props.currChannel ? (
                                 <div className="displayRoomName">
@@ -1157,14 +1161,14 @@ function Thread(props) {
                 'Content-Type': 'application/json'
             }
         })
-        .then(response => {
-            if (!response.ok) {
-                console.log('-+_+_+_+_+_+_+_+_+_+_+',response.json());
-                setValid(false);
-            }
+            .then(response => {
+                if (!response.ok) {
+                    console.log('-+_+_+_+_+_+_+_+_+_+_+', response.json());
+                    setValid(false);
+                }
 
-        })
-        .catch(error => console.error("Failed to check if thread is valid:", error));
+            })
+            .catch(error => console.error("Failed to check if thread is valid:", error));
     }
 
 
@@ -1203,8 +1207,6 @@ function Thread(props) {
     console.log("In the room {" + id + "} message {" + props.selectedMessageId + "}");
 
 
-
-
     if (rooms.length < parseInt(id, 10) || !valid) {
         return <NotFoundPage/>;
     } else {
@@ -1236,8 +1238,7 @@ function Thread(props) {
                     <div className={`room ${view !== 'message' ? 'hidden' : ''}`}>
 
                         <div className="header">
-                            <h2><a className="go_to_splash_page" onClick={goToSplash}>Watch Party</a></h2>
-                            <h4>2</h4>
+                            <h2><a className="go_to_splash_page" onClick={goToSplash}>Belay</a></h2>
                             <div className="roomDetail">
                                 {!props.isEditing && props.currChannel ? (
                                     <div className="displayRoomName">
@@ -1359,7 +1360,8 @@ function Thread(props) {
                         </div>
                         <button onClick={() => {
                             handleBackToChannels()
-                        }}>close</button>
+                        }}>close
+                        </button>
 
                         <h3>Message</h3>
                         <div className="message">
@@ -1459,14 +1461,23 @@ function Thread(props) {
 function NotFoundPage() {
     document.title = "NOT FOUND";
     return (
-        <div>
-            <h1>404 - Page Not Found</h1>
-            <p>Sorry, the page you are looking for does not exist.</p>
-            <p>You can always go back to the <a href="/">homepage</a>.</p>
-
+        <div className="notFound">
+            <div className="header">
+                <h2><a href="/">Belay</a></h2> {/* Consider replacing <a> with <Link> if using React Router */}
+                <h4>404 Error</h4>
+            </div>
+            <div className="clip">
+                <div className="container">
+                    <h1>404</h1>
+                    <div className="message">
+                        <h2>Oops, we can't find that page!</h2>
+                        <a href="/">Let's go home and try again.</a> {/* Consider replacing <a> with <Link> if using React Router */}
+                    </div>
+                </div>
+            </div>
         </div>
 
-    );
+);
 }
 
 
