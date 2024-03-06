@@ -42,7 +42,7 @@ button:hover {
     display: flex;
     margin-left: auto;
     z-index: 5;
-    height: 44px;
+    height: 100px;
     position: absolute;
     top: 0;
     left: 300px;
@@ -84,7 +84,7 @@ button:hover {
 
 .alignedForm {
     display: grid !important;
-    grid-template-columns: 1fr 1fr 100%;
+    grid-template-columns: 1fr 1fr 20%;
     align-content: center;
     justify-content: end;
     align-items: start;
@@ -221,7 +221,7 @@ button:hover {
     width: 600px;
     display: grid;
     grid-template-columns: 3fr 1fr;
-    grid-template-rows: 2fr 1fr;
+    grid-template-rows: 2fr 1fr 1fr;
 }
 
 
@@ -285,6 +285,10 @@ h3 {
 }
 
 .splash .hero button {
+    grid-column-start: 1;
+    grid-column-end: 2;
+    grid-row-start: 3;
+    grid-row-end: 4;
     margin: 20px 40px 20px 40px;
     padding: 10px 20px 10px 20px;
     font-size: 24px;
@@ -294,9 +298,9 @@ h3 {
     box-shadow: 0 0 4px magenta;
     filter: drop-shadow(10px 4px 4px #4444dd);
     width: 300px;
-    position: absolute;
-    top: 550px;
-    left: 660px;
+    position: relative;
+    /*top: 550px;*/
+    /*left: 660px;*/
 }
 
 .splash .hero button:hover {
@@ -535,6 +539,7 @@ h3 {
     margin: 20px;
     overflow: hidden;
     max-height: 100%;
+    width: 20%;
 }
 
 .replies-section .back-button {
@@ -728,6 +733,10 @@ h3 {
         cursor: pointer;
         margin-bottom: 20px;
         display: inline-block;
+    }
+
+    .replies-section{
+        width: 100%;
     }
 
     .header h4 {
