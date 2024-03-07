@@ -1,10 +1,3 @@
-# Collaboration Guidelines (IMPORTANT)
-
-This is a public repo. To maintain the integrity of the project and respect 
-for all contributors, please let me know if you plan to use my code so that 
-we can add names to each other's collaboration section to avoid plagiarism 
-penalties. Thanks! My email is zhiweic@uchicago.edu
-
 # Final Project: Belay (a Slack clone)
 
 40 points
@@ -185,3 +178,4 @@ Narrow Screens:
 
 # Collaboration 
 Shuyu Jia, GitHub: jiashuyu
+Yijie Li
