@@ -1,181 +1,397 @@
-# Final Project: Belay (a Slack clone)
+# Belay - Real-time Chat Application
 
-40 points
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![Flask](https://img.shields.io/badge/Flask-2.3+-green.svg)
+![React](https://img.shields.io/badge/React-18.0+-61DAFB.svg)
+![SQLite](https://img.shields.io/badge/SQLite-3+-003B57.svg)
 
-**DUE: Friday, March 8 by 5:00pm**
+A modern, real-time chat application inspired by Slack, built with Flask and React. Belay provides seamless communication through organized channels, threaded conversations, and real-time messaging capabilities.
 
-https://classroom.github.com/a/qeha1A1z
+## 🚀 Features
 
-## Introduction
+### Core Messaging
+- **Real-time Chat**: Send and receive messages instantly across multiple channels
+- **Channel Management**: Create, join, and manage organized discussion channels
+- **Threaded Conversations**: Reply to specific messages to maintain context
+- **Message Reactions**: Express reactions with emoji responses
+- **Image Support**: Automatic image URL parsing and display
+- **Unread Message Tracking**: Keep track of unread messages across all channels
 
-As a capstone project for Web Development, we're going to combine the various
-front-end and back-end techniques we've learned over the course to produce a
-modern, database-backed single-page application. Specifically, we'll be building
-our own (significantly smaller in scope) version of the popular workplace
-messaging app Slack. We'll call our version
-[Belay](https://en.wikipedia.org/wiki/Belaying).
+### User Experience
+- **Single Page Application**: Smooth navigation without page reloads
+- **Responsive Design**: Optimized for desktop, tablet, and mobile devices
+- **Real-time Updates**: Messages appear instantly without manual refresh
+- **Persistent Sessions**: Stay logged in across browser sessions
+- **URL Navigation**: Direct links to specific channels and message threads
 
-## Core Behavior
+### Security & Authentication
+- **User Authentication**: Secure signup and login system
+- **API Key Authorization**: Token-based authentication for API endpoints
+- **Input Sanitization**: Protection against SQL injection attacks
+- **Session Management**: Secure user session handling
 
-- Belay lets users send and read real-time chat messages that are organized into
-  rooms called Channels. Users see a list of all the channels on the server and
-  can click one to enter that channel. Inside, they see all the messages posted
-  to that channel by any user, and can post their own messages. All messages
-  belong to a channel and all channels are visible to all users; we don't need
-  to implement private rooms or direct messages.
-- Any user can create a new channel by supplying a display name. Channel names
-  must be unique. If you wish, you may choose to limit what characters are
-  allowed in channel names.
-- Like Slack, messages may be threaded as Replies in response to a message in a
-  channel. Messages in the channel will display how many replies they have if
-  that number is greater than zero. We don't support nested threads; messages
-  either belong directly to a channel or are replies in a thread to a message
-  that does, but replies can't have nested replies of their own.
+## 🛠 Technologies Used
 
-## Submissions and Grading
+### Backend
+- **Flask** - Lightweight WSGI web application framework
+- **SQLite** - Embedded relational database
+- **Python 3.11+** - Core programming language
 
-Graders will have Python 3.11+ with Flask installed, and a local install of
-SQLite3 (which comes with Python). Because graders must use the same environment
-to evaluate submissions from multiple students, please **do not require any
-additional programs or packages to be installed**. In your submission, include a
-README with instructions for how to configure and run your app:
+### Frontend
+- **React** - Component-based UI library
+- **JavaScript (ES6+)** - Modern JavaScript features
+- **CSS3** - Modern styling with gradients and animations
+- **React Router** - Client-side routing for SPA functionality
 
-- Graders will start your app with a `flask run` command from the command line.
-  Graders will have their FLASK_APP environment variable set to "app," so name
-  your Flask file `app.py`.
-- Graders will have the packages in `requirements.txt` installed with
-  `pip3 install -r requirements.txt`. If you feel strongly that you need a
-  package not listed there, ask on the course Slack.
-- Graders will try to access your app in their browser at the URL that Flask
-  prints to the command line, e.g.
-  `* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)`
-- Make sure that your app starts successfully under these circumstances. We'll
-  do our best to make your app run even if it doesn't, but with a points
-  penalty.
+### Development Tools
+- **Git** - Version control
+- **RESTful API Design** - Clean API architecture
+- **Responsive Web Design** - Mobile-first approach
 
-You can use any techniques or tools to complete your project, whether or not we
-studied them in class. In particular, note that there is no requirement that you
-use React (though it may make the project easier to complete). You could do the
-whole project with vanilla Javascript, you could use React, or you could use
-some other framework we didn't study in class, like [Vue.js](https://vuejs.org/)
-or [Svelte](https://svelte.dev/). As always, remember to include in your
-submission any classmates you collaborated with and any materials you consulted.
+## 📋 Prerequisites
 
-## Requirements and Rubric (40 points total)
+- Python 3.11 or higher
+- Modern web browser (Chrome, Firefox, Safari, Edge)
+- Git (for cloning the repository)
 
-### Unauthenticated UI: (3 points)
+## 🔧 Installation & Setup
 
-- Unanthenticated users can create a new account
-- Unauthenticated users can sign in with their username and password
-- Unauthenticed users who try to access a room cannot see any messages in that
-  room, and are sent to the signup/login page instead
+### 1. Clone the Repository
+```bash
+git clone https://github.com/yourusername/belay-chat-app.git
+cd belay-chat-app
+```
 
-### Authenticated UI: (10 points)
+### 2. Set Up Python Environment
+```bash
+# Create virtual environment (recommended)
+python -m venv belay_env
+source belay_env/bin/activate  # On Windows: belay_env\Scripts\activate
 
-- Authenticated users can log out, change their username, and change their
-  password
-- Authenticated users can see a list of all channels. For each channel, they 
-  can see how many unread messages they have in that channel
-- Visiting a channel marks all messages in it as read, and all new messages
-  posted to that channel while the user is in it are marked as read too
-- Check for new messages in the channel at least once every 500 ms. Stop
-  checking if the user leaves the channel. (Hint: use SetInterval)
-- Check for new unread messages in other channels at least once every second.
-  Use only one HTTP request to get counts for all channels
-- For each message with replies, display the number of replies to that message
-  just below the message content
-- All messages in a room have a Reply button or icon that opens the replies pane
-- Parse image URLs that appear in messages and display the images at the end of
-  the message. (Hint: you may use the web to help you find an appropriate
-  regular expression)
-- Users can add an emoji reaction to any message or reply. You may choose a 
-  limited set of emoji reactions you support.
-- Hovering over a reaction displays all the users who had that reaction
+# Install dependencies
+pip install -r requirements.txt
+```
 
-### Single-Page State (5 points)
+### 3. Initialize Database
+The SQLite database is already set up with sample data. If you need to reset it, you can find the schema in `db/belay.sql`.
 
-- Only serve one HTML request. Handle all other requests through the API
-- Push the channel name (for messages) or parent message id (for replies) to the
-  history and navigation bar when the user navigates to a channel or thread
-  Users can use the Back button to navigate to a previous channel or thread
-- Loading the unique URL of a channel or thread should open the app to that
-  channel or thread
-- If an unauthenticated user follows a link to a channel or thread, show them
-  the login or signup screens, but if they log in or sign up, send them to the
-  original page they requested
-- Save the user's auth key in localStorage or in a cookie. Include your CNETID
-  as part of your storage keys so your storage won't conflict with those of
-  other students on the graders' machines. e.g.
-  `window.localStorage.setItem('trevoraustin_belay_auth_key', 'abcdefg')`
+### 4. Configure Environment
+```bash
+export FLASK_APP=app.py
+export FLASK_ENV=development  # Optional: for development mode
+```
 
-### Responsive Styling: (8 points)
+### 5. Start the Application
+```bash
+flask run
+```
 
-Wide Screen:
+The application will be available at `http://127.0.0.1:5000/`
 
-- Show the list of channels down the left-hand side of the screen, and the
-  channel the user is looking at (or a placeholder for no channel) on the
-  right-hand side
-- Clicking on the name of a channel loads that channel's messages into the
-  right-hand column
-- The current channel is highlighted in the channel list, and the names of other
-  channels change have a subtle visual change on hover
-- When viewing a reply thread, display the thread as a third column, narrowing
-  the column with messages to fit it
-- Users can click an icon or button to dismiss the thread panel
+## 📊 Database Schema
 
-Narrow Screens:
+### Tables Overview
+- **users** - User accounts and authentication
+- **channels** - Chat rooms/channels
+- **messages** - Chat messages and replies
+- **reactions** - Emoji reactions to messages
+- **user_message_views** - Track read/unread status
 
-- On narrow screens, the page has a one-column layout with a menu bar. Users see
-  the channel list, the messages in one channel, or the replies to one message
-  at a time, and not the other two
-- When viewing replies, users can see the parent message they are replying to.
-  They can click a button or link to navigate to the channel containing the
-  parent message
-- When viewing messages in a channel on a narrow screen, users have a button or
-  link they can click to navigate back to the channel list
+### Detailed Schema
+```sql
+-- Users table
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(40) UNIQUE,
+    password VARCHAR(40),
+    api_key VARCHAR(40)
+);
 
-### Database (8 points)
+-- Channels table
+CREATE TABLE channels (
+    id INTEGER PRIMARY KEY,
+    name VARCHAR(40) UNIQUE
+);
 
-- Store channels, messages, and user account information in a SQLite3 database
-- Create the database and its tables with migrations Start the name(s) of your
-  migration file(s) with [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)
-  timestamps so that the file system will list them in the order they were
-  created. Check those migrations into version control for your assignment,
-  alongside the actual database file
-- Create a table for channels that stores a unique id and the channel name
-- Create a table for messages that stores, at a minimum, what channel the
-  message is in, the id of the user that wrote the message, and its text
-  contents
-- Store Replies in the Messages table. Implement a way of distinguishing regular
-  messages in a channel from replies to a message (e.g. with a `replies_to`
-  column that is null for normal messages but contains a messsage_id for
-  Replies)
-- Create a table for reactions that stores, at a minimum, the emoji, the id of
-  the message or comment it is a reaction to, and the id of the user who made
-  the reaction
-- Create a
-  [join table](https://stackoverflow.com/questions/16549971/join-tables-in-sqlite-with-many-to-many)
-  to capture the many-to-many relationship between Users and which Messages they
-  have seen. (Hint: store the _latest_ timestamp or message id seen for each
-  user in each channel—you don't have to store every user-to-message pair)
-- Sanitize all database inputs by
-  [passing them as arguments to a parameterized quer](https://flask.palletsprojects.com/en/2.3.x/patterns/sqlite3/#:~:text=To%20pass%20variable%20parts%20to%20the%20SQL%20statement%2C%20use%20a%20question%20mark%20in%20the%20statement%20and%20pass%20in%20the%20arguments%20as%20a%20list.%20Never%20directly%20add%20them%20to%20the%20SQL%20statement%20with%20string%20formatting%20because%20this%20makes%20it%20possible%20to%20attack%20the%20application%20using%20SQL%20Injections)
+-- Messages table (includes both messages and replies)
+CREATE TABLE messages (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    channels_id INTEGER,
+    replies_to INTEGER,  -- NULL for main messages, message_id for replies
+    body TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (channels_id) REFERENCES channels(id),
+    FOREIGN KEY (replies_to) REFERENCES messages(id)
+);
 
-### API (6 points)
+-- Reactions table
+CREATE TABLE reactions (
+    id INTEGER PRIMARY KEY,
+    emoji VARCHAR(10),
+    message_id INTEGER,
+    user_id INTEGER,
+    FOREIGN KEY (message_id) REFERENCES messages(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
-- Give API endpoints a unique path namespace to distinguish them from your HTML
-  path(s) e.g. `/api/endpoint1`, `/api/encpoint2` etc
-- Create an authentication endpoint that accepts a username and password, and 
-  returns a session token
-- Authenticate to other endpoints via session token in the request header (not
-  as a URL param or in a request body)
-- Use GET requests for API calls that don't change data on the server, and POST
-  requests for API calls that **do** change data on the server
-- Create endpoints to create and get channels and messages, and to update a user's last
-  read message in a channel
-- Create an endpoint to return unread message counts for the user for each channel in a
-  single request with a single database query
+-- User message views (for unread tracking)
+CREATE TABLE user_message_views (
+    user_id INTEGER,
+    channel_id INTEGER,
+    last_message_id_seen INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(channel_id) REFERENCES channels(id),
+    FOREIGN KEY(last_message_id_seen) REFERENCES messages(id),
+    PRIMARY KEY (user_id, channel_id)
+);
+```
 
-# Collaboration 
-Shuyu Jia, GitHub: jiashuyu
-Yijie Li
+## 🔌 API Documentation
+
+### Authentication Endpoints
+
+#### Sign Up
+```http
+POST /api/signup
+```
+Creates a new user account with auto-generated credentials.
+
+**Response:**
+```json
+{
+    "id": 1,
+    "username": "Unnamed User #123456",
+    "api_key": "abc123def456..."
+}
+```
+
+#### Login
+```http
+POST /api/login
+Content-Type: application/json
+
+{
+    "username": "user123",
+    "password": "password123"
+}
+```
+
+### Channel Endpoints
+
+#### Get All Channels
+```http
+GET /api/channel
+```
+
+#### Create New Channel
+```http
+POST /api/channel
+Authorization: your_api_key_here
+```
+
+#### Get Channel Details
+```http
+GET /api/channel/{channel_id}
+Authorization: your_api_key_here
+```
+
+#### Update Channel Name
+```http
+POST /api/channel/{channel_id}
+Authorization: your_api_key_here
+Content-Type: application/json
+
+{
+    "name": "New Channel Name"
+}
+```
+
+### Message Endpoints
+
+#### Get Channel Messages
+```http
+GET /api/channel/{channel_id}/messages
+Authorization: your_api_key_here
+```
+
+#### Post Message
+```http
+POST /api/channel/{channel_id}/messages
+Authorization: your_api_key_here
+Content-Type: application/json
+
+{
+    "body": "Hello, world!"
+}
+```
+
+#### Get Message Replies
+```http
+GET /api/messages/{message_id}/replies
+Authorization: your_api_key_here
+```
+
+#### Post Reply
+```http
+POST /api/messages/{message_id}/replies
+Authorization: your_api_key_here
+Content-Type: application/json
+
+{
+    "body": "This is a reply"
+}
+```
+
+### Reaction Endpoints
+
+#### Get Message Reactions
+```http
+GET /api/message/{message_id}/reaction
+Authorization: your_api_key_here
+```
+
+#### Add Reaction
+```http
+POST /api/message/{message_id}/reaction
+Authorization: your_api_key_here
+Content-Type: application/json
+
+{
+    "emoji": "👍"
+}
+```
+
+### User Endpoints
+
+#### Get Unread Message Counts
+```http
+GET /api/user/unread-messages
+Authorization: your_api_key_here
+```
+
+#### Update Profile
+```http
+POST /api/profile
+Authorization: your_api_key_here
+Content-Type: application/json
+
+{
+    "name": "New Username",
+    "password": "new_password"
+}
+```
+
+## 📁 Project Structure
+
+```
+belay-chat-app/
+├── app.py                 # Flask application entry point
+├── requirements.txt       # Python dependencies
+├── README.md             # Project documentation
+├── static/               # Frontend static files
+│   ├── index.html        # Main HTML template
+│   ├── index.css         # Styling and responsive design
+│   ├── index.js          # React components and logic
+│   └── assets/           # Images and other static assets
+├── db/                   # Database files
+│   └── belay.sql         # Database schema
+├── migrations/           # Database migrations
+│   ├── 20240222161801_create_channels_table.sql
+│   ├── 20240222161901_create_users_table.sql
+│   ├── 20240222162001_create_messages_table.sql
+│   ├── 20240222162101_create_reactions_table.sql
+│   ├── 20240222162201_create_user_message_view_table.sql
+│   └── 20240222162501_belay.sqlite3  # SQLite database file
+└── docs/                 # Additional documentation
+```
+
+## 🎨 Design Features
+
+- **Modern UI**: Clean, professional interface with gradient backgrounds
+- **Responsive Layout**: Adapts seamlessly to different screen sizes
+- **Real-time Updates**: Automatic message polling for live chat experience
+- **Smooth Animations**: Subtle hover effects and transitions
+- **Accessibility**: Keyboard navigation and screen reader support
+
+## 🔄 Real-time Features
+
+- **Message Polling**: New messages check every 500ms when in a channel
+- **Unread Count Updates**: Updates every second across all channels
+- **Automatic Read Marking**: Messages marked as read when viewing channel
+- **Live Reply Counts**: Real-time updates of reply counts on messages
+
+## 🚀 Deployment
+
+### Production Considerations
+1. **Environment Variables**: Set `FLASK_ENV=production`
+2. **Database**: Consider PostgreSQL for production use
+3. **Static Files**: Serve static files through a web server (nginx/Apache)
+4. **Security**: Use HTTPS and secure session cookies
+5. **Monitoring**: Implement logging and error tracking
+
+### Docker Support (Optional)
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD ["flask", "run", "--host=0.0.0.0"]
+```
+
+## 🤝 Contributing
+
+### Development Setup
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and test thoroughly
+4. Commit with descriptive messages
+5. Push to your fork and submit a pull request
+
+### Code Style
+- Follow PEP 8 for Python code
+- Use meaningful variable and function names
+- Add comments for complex logic
+- Ensure responsive design for CSS changes
+
+## 📝 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
+## 👥 Contributors
+
+- **Zhiwei Cao** - Lead Developer
+- **Shuyu Jia** - Collaborator ([GitHub](https://github.com/jiashuyu))
+- **Yijie Li** - Collaborator
+
+## 🐛 Known Issues
+
+- Image URLs must be directly accessible (no authentication required)
+- Message history is limited to database storage capacity
+- Real-time updates require active polling (consider WebSocket upgrade)
+
+## 🚧 Future Enhancements
+
+- [ ] WebSocket integration for true real-time messaging
+- [ ] File upload and sharing capabilities
+- [ ] Private direct messaging
+- [ ] User presence indicators
+- [ ] Message search functionality
+- [ ] Push notifications
+- [ ] Dark mode theme
+- [ ] Message formatting (markdown support)
+- [ ] User roles and permissions
+- [ ] Channel archiving
+
+## 📞 Support
+
+For questions, bug reports, or feature requests, please:
+1. Check the [Issues](../../issues) page
+2. Create a new issue with detailed description
+3. Include steps to reproduce for bugs
+
+---
+
+**Built with ❤️ using Flask and React**
