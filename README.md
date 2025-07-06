@@ -360,12 +360,6 @@ CMD ["flask", "run", "--host=0.0.0.0"]
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## 👥 Contributors
-
-- **Zhiwei Cao** - Lead Developer
-- **Shuyu Jia** - Collaborator ([GitHub](https://github.com/jiashuyu))
-- **Yijie Li** - Collaborator
-
 ## 🐛 Known Issues
 
 - Image URLs must be directly accessible (no authentication required)
@@ -385,13 +379,8 @@ This project is open source and available under the [MIT License](LICENSE).
 - [ ] User roles and permissions
 - [ ] Channel archiving
 
-## 📞 Support
-
-For questions, bug reports, or feature requests, please:
-1. Check the [Issues](../../issues) page
-2. Create a new issue with detailed description
-3. Include steps to reproduce for bugs
-
 ---
+
+
 
 **Built with ❤️ using Flask and React**
